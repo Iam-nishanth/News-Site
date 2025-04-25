@@ -1,0 +1,14 @@
+.content img {
+    margin: 20px 0;
+    max-height: 500px;
+    width: 100%;
+    object-fit: cover;
+    object-position: top center;
+  }
+  
+  .content a {
+    color: hsl(var(--ring));
+    font-style: italic;
+    font-family: "Roboto", sans-serif;
+  }
+  
