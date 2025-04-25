@@ -1,0 +1,109 @@
+datasource db {
+  provider          = "mongodb"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL") // Only needed when using a cloud provider that doesn't support the creation of new databases, like Heroku. Learn more: https://pris.ly/d/migrate-shadow
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String      @id @default(cuid()) @map("_id")
+  name          String
+  email         String      @unique
+  password      String?
+  role          ROLE        @default(USER)
+  phoneNo       String?
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  news          News[]
+  drafts        DraftPost[]
+  comments      Comment[]
+}
+
+model VerificationToken {
+  identifier String   @id @map("_id")
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Category {
+  id     String      @id @default(cuid()) @map("_id")
+  slug   String      @unique
+  title  String
+  img    String?
+  news   News[]
+  drafts DraftPost[]
+}
+
+model News {
+  id           String       @id @default(cuid()) @map("_id")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  title        String
+  tags         String[]
+  categorySlug String
+  imgCaption   String?
+  content      String
+  featuredImg  String?
+  slug         String       @unique
+  userEmail    String
+  cat          Category     @relation(fields: [categorySlug], references: [slug])
+  user         User         @relation(fields: [userEmail], references: [email])
+  comments     Comment[]
+  homeGrid     HomeGrid?    @relation(fields: [homeGridId], references: [id])
+  homeGridId   String?
+  HeroSection  HeroSection?
+}
+
+model HomeGrid {
+  id        String @id @default(cuid()) @map("_id")
+  newsItems News[]
+}
+
+model DraftPost {
+  id           String   @id @default(cuid()) @map("_id")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  title        String
+  tags         String[]
+  categorySlug String
+  imgCaption   String?
+  content      String
+  featuredImg  String?
+  slug         String   @unique
+  userEmail    String
+  cat          Category @relation(fields: [categorySlug], references: [slug])
+  user         User     @relation(fields: [userEmail], references: [email])
+}
+
+model Comment {
+  id        String   @id @default(cuid()) @map("_id")
+  createdAt DateTime @default(now())
+  desc      String
+  userEmail String
+  user      User     @relation(fields: [userEmail], references: [email])
+  postSlug  String
+  post      News     @relation(fields: [postSlug], references: [slug])
+}
+
+model HeroSection {
+  id        String   @id @default(cuid()) @map("_id")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  position  Int      @unique
+  news      News     @relation(fields: [newsSlug], references: [slug])
+  newsSlug  String   @unique
+}
+
+enum ROLE {
+  SUPERADMIN
+  ADMIN
+  EDITOR
+  USER
+}
