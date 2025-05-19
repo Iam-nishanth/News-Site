@@ -1,0 +1,89 @@
+.yoopta-preview {
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.6;
+    color: #292929;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.yoopta-preview h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+}
+
+.yoopta-preview h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    margin-top: 2rem;
+}
+
+.yoopta-preview h3 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    margin-top: 1.75rem;
+}
+
+.yoopta-preview p {
+    margin-bottom: 1.25rem;
+    font-size: 1.125rem;
+}
+
+.yoopta-preview ul,
+.yoopta-preview ol {
+    margin: 1.25rem 0;
+    padding-left: 2rem;
+}
+
+.yoopta-preview li {
+    margin-bottom: 0.5rem;
+    font-size: 1.125rem;
+}
+
+.yoopta-preview img {
+    max-width: 100%;
+    height: auto;
+    margin: 1.5rem 0;
+    border-radius: 4px;
+}
+
+.yoopta-preview code {
+    background-color: #f3f3f3;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+.yoopta-preview pre {
+    background-color: #f3f3f3;
+    padding: 1rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 1.5rem 0;
+}
+
+.yoopta-preview a {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+.yoopta-preview a:hover {
+    text-decoration: underline;
+}
+
+/* Dark mode styles */
+@media (prefers-color-scheme: dark) {
+    .yoopta-preview {
+        color: #e0e0e0;
+    }
+
+    .yoopta-preview code,
+    .yoopta-preview pre {
+        background-color: #2a2a2a;
+    }
+}

@@ -1,24 +1,61 @@
-.bn-editor {
-  border: 2px solid;
-  border-color: hsl(var(--input));
-  background-color: var(--background);
-  padding-top: 20px;
-  padding-bottom: 20px;
-  font-size: 1rem /* 16px */;
-  line-height: 1.5rem; /* 24px */
+/* .bn-editor {
+    border: 2px solid;
+    border-color: hsl(var(--input));
+    background-color: hsl(var(--background));
+    padding-top: 20px;
+    padding-bottom: 20px;
+    font-size: 1rem;
+    line-height: 1.5rem;
 }
+
 .bn-editor:focus {
-  outline: 1px solid transparent;
-  outline-offset: 2px;
+    outline: 1px solid transparent;
+    outline-offset: 2px;
 }
+
 .bn-editor:focus-visible {
-  outline: 1px solid hsl(var(--ring));
-  outline-offset: 2px;
+    outline: 1px solid hsl(var(--ring));
+    outline-offset: 2px;
 }
 
 .bn-side-menu svg {
-  fill: hsl(var(--ring));
-  opacity: 0.7;
-  width: 20px;
-  height: 20px;
+    fill: hsl(var(--ring));
+    opacity: 0.7;
+    width: 20px;
+    height: 20px;
+} */
+
+/* Scoped Yoopta Editor dark mode styles
+.yoopta-wrapper.dark {
+    --yoopta-bg: hsl(var(--background));
+    --yoopta-text: hsl(var(--foreground));
 }
+
+.yoopta-wrapper.dark .yoopta-editor {
+    color: var(--yoopta-text);
+    background-color: var(--yoopta-bg);
+}
+
+.yoopta-wrapper.dark .yoopta-toolbar-root {
+    color: var(--yoopta-text);
+    background-color: var(--yoopta-bg);
+    border-color: hsl(var(--border));
+}
+
+.yoopta-wrapper.dark .yoopta-action-menu-list-content {
+    color: var(--yoopta-text);
+    background-color: var(--yoopta-bg);
+    border-color: hsl(var(--border));
+}
+
+.yoopta-wrapper.dark .yoopta-action-menu-list-content [role='option'] {
+    color: var(--yoopta-text);
+}
+
+.yoopta-wrapper.dark .yoopta-action-menu-list-content [role='option']:hover {
+    background-color: hsl(var(--accent));
+}
+
+.yoopta-wrapper.dark .yoopta-action-menu-list-content svg {
+    color: var(--yoopta-text);
+} */

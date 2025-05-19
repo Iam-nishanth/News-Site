@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useContext, useState } from 'react';
-import { Filter, LucideEdit } from 'lucide-react';
+import { Filter, LucideEdit, Plus } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import SignUpForm from '@/components/Forms/SignupForm';
@@ -76,7 +76,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
                     <Dialog open={open} onOpenChange={(val) => setOpen(val)}>
                         <DialogTrigger asChild>
                             <Button className="h-12" variant="outline" size="icon">
-                                <LucideEdit className=" w-4 h-4" />
+                                <Plus className=" w-4 h-4" />
                             </Button>
                         </DialogTrigger>
                         <DialogContent>

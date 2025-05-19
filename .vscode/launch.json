@@ -1,15 +1,171 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "chrome",
-            "request": "launch",
-            "name": "Launch Chrome against localhost",
-            "url": "http://localhost:3000",
-            "webRoot": "${workspaceFolder}"
-        }
-    ]
+	// Use IntelliSense to learn about possible attributes.
+	// Hover to view descriptions of existing attributes.
+	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Start Next.js Client",
+			"type": "node",
+			"request": "launch",
+			"runtimeExecutable": "npm",
+			"runtimeArgs": [
+				"run",
+				"dev"
+			],
+			"cwd": "${workspaceFolder}",
+			"console": "integratedTerminal",
+			"env": {
+				"PORT": "3000"
+			},
+			"skipFiles": [
+				"<node_internals>/**"
+			]
+		},
+		{
+			"name": "Launch Firefox",
+			"type": "firefox",
+			"request": "launch",
+			"reAttach": true,
+			"url": "http://localhost:3000",
+			"webRoot": "${workspaceFolder}",
+			"profile": "vscodedebug",
+			"keepProfileChanges": true,
+			"firefoxExecutable": "/usr/bin/firefox",
+			"pathMappings": [
+				{
+					"url": "http://localhost:3000",
+					"path": "${workspaceFolder}"
+				},
+				{
+					"url": "webpack://_n_e",
+					"path": "${workspaceFolder}"
+				}
+			],
+			"log": {
+				"level": "verbose"
+			},
+			"preferences": {
+				"security.fileuri.strict_origin_policy": false,
+				"javascript.options.asyncstack": true
+			},
+			"firefoxArgs": [
+				"--no-remote",
+				"--new-instance",
+				"--purgecaches"
+			]
+		},
+		{
+			"name": "Launch Chrome",
+			"request": "launch",
+			"type": "chrome",
+			"url": "http://localhost:3000",
+			"webRoot": "${workspaceFolder}"
+		},
+		{
+			"name": "Watch",
+			"request": "launch",
+			"runtimeArgs": [
+				"run-script",
+				"start"
+			],
+			"runtimeExecutable": "npm",
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"type": "node"
+		},
+		{
+			"name": "Build",
+			"request": "launch",
+			"runtimeArgs": [
+				"run-script",
+				"build"
+			],
+			"runtimeExecutable": "npm",
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"type": "node"
+		},
+		{
+			"name": "Prod_Client",
+			"type": "chrome",
+			"request": "launch",
+			"url": "http://localhost:3000",
+			"webRoot": "${workspaceFolder}/client",
+			"runtimeArgs": [
+				"--preserve-symlinks"
+			]
+		},
+		{
+			"name": "Client",
+			"type": "node",
+			"request": "launch",
+			"runtimeExecutable": "npm",
+			"runtimeArgs": [
+				"run-script",
+				"dev",
+				"--preserve-symlinks"
+			],
+			"restart": true,
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"console": "integratedTerminal",
+			"internalConsoleOptions": "neverOpen"
+		},
+		{
+			"name": "App",
+			"type": "node",
+			"request": "launch",
+			"runtimeExecutable": "npm",
+			"runtimeArgs": [
+				"run-script",
+				"tauri",
+				"dev",
+				"--preserve-symlinks"
+			],
+			"restart": true,
+			"skipFiles": [
+				"<node_internals>/**"
+			],
+			"console": "integratedTerminal",
+			"internalConsoleOptions": "neverOpen"
+		}
+	],
+	"compounds": [
+		{
+			"name": "Launch Next.js + Chrome",
+			"configurations": [
+				"Start Next.js Client",
+				"Launch Chrome"
+			],
+			"preLaunchTask": "wait",
+			"stopAll": true
+		},
+		{
+			"name": "Launch Next.js + Firefox",
+			"configurations": [
+				"Start Next.js Client",
+				"Launch Firefox"
+			],
+			"preLaunchTask": "wait",
+			"stopAll": true
+		},
+		{
+			"name": "Production",
+			"configurations": [
+				"Build",
+				"Prod_Client"
+			]
+		},
+		{
+			"name": "Development",
+			"configurations": [
+				"Client",
+				"Launch Chrome"
+			]
+		}
+	]
 }

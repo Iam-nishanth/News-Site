@@ -1,0 +1,6 @@
+{
+	"dotenv.enableAutocloaking": false,
+	"eslint.workingDirectories": [{ "mode": "auto" }],
+	"editor.wordWrap": "off",
+	"postman.settings.dotenv-detection-notification-visibility": false,
+}

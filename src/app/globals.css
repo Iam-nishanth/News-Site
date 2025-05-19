@@ -48,6 +48,19 @@
         --input: 217.2 32.6% 17.5%;
         --ring: 224.3 76.3% 48%;
     }
+    & .yoopta-block-actions button {
+        color: #fff !important;
+    }
+
+    & .yoopta-toolbar-root {
+        background-color: #1f1f1f;
+        box-shadow: 0 4px 12px #0f0f0f;
+        color: white;
+    }
+
+    & .yoopta-table td[data-cell-selected='true'] {
+        background-color: #1f1f1f;
+    }
 }
 
 @layer base {
@@ -62,9 +75,8 @@
         @apply bg-background text-foreground antialiased relative h-full font-Barlow !scroll-smooth;
     }
 }
-
 .yoopta-editor:not(#yoopta-email-builder .yoopta-editor) {
-    width: 750px !important;
+    width: 100% !important;
 }
 
 @media (max-width: 768px) {
@@ -127,12 +139,6 @@
 #slack .yoopta-editor .yoopta-code .cm-content {
     padding: 8px;
     line-height: 1.46668;
-}
-
-table,
-th,
-td {
-    border: 1px solid black;
 }
 
 .yoopta-carousel .yoopta-carousel-options {

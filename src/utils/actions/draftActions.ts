@@ -5,12 +5,12 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth';
 import { deleteFirebaseFile } from '@/lib/editor';
 
-export const generateSlug = async (name: string): Promise<string> => {
+export async function generateSlug(name: string): Promise<string> {
     let slug = name.toLowerCase();
     slug = slug.replace(/\s+/g, '-');
     slug = slug.replace(/[^a-z0-9\-]/g, '');
     return slug;
-};
+}
 
 type DraftResponse = (
     post: Omit<DraftPost, 'id' | 'slug' | 'userEmail' | 'createdAt' | 'updatedAt'>
