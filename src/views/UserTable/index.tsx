@@ -14,6 +14,7 @@ import { verifyUser } from '@/utils/actions/authActions';
 import { changeRole, deleteUser } from '@/utils/actions/adminActions';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { Badge } from '@/components/ui/badge';
 
 export type ROW = {
     id: string;
@@ -114,8 +115,17 @@ const UserTable = ({ data }: { data: User[] }) => {
             header: 'Verified?',
             cell: ({ row }) => {
                 const isVerified = row.original.emailVerified;
-                if (isVerified == null) return <span className=" bg-red-400 px-2 font-medium text-black">No</span>;
-                return <span className=" bg-green-400 px-2 font-medium text-black">Yes</span>;
+                if (isVerified == null)
+                    return (
+                        <Badge variant="destructive" className="px-2 self-center">
+                            No
+                        </Badge>
+                    );
+                return (
+                    <Badge variant="success" className="px-2 self-center">
+                        Yes
+                    </Badge>
+                );
             }
         },
         {

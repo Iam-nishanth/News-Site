@@ -4,20 +4,75 @@ import { DeleteDraft, PublishDraft } from '@/utils/actions/draftActions';
 import { DraftPost } from '@prisma/client';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { toast } from 'sonner';
+import './styles.css';
+import { html } from '@yoopta/exports';
+import { createYooptaEditor } from '@yoopta/editor';
+import Paragraph from '@yoopta/paragraph';
+import Blockquote from '@yoopta/blockquote';
+import Embed from '@yoopta/embed';
+import ImagePlugin from '@yoopta/image';
+import Link from '@yoopta/link';
+import Callout from '@yoopta/callout';
+import Video from '@yoopta/video';
+import File from '@yoopta/file';
+import Accordion from '@yoopta/accordion';
+import { NumberedList, BulletedList, TodoList } from '@yoopta/lists';
+import { Bold, Italic, CodeMark, Underline, Strike, Highlight } from '@yoopta/marks';
+import { HeadingOne, HeadingThree, HeadingTwo } from '@yoopta/headings';
+import Code from '@yoopta/code';
+import ActionMenuList, { DefaultActionMenuRender } from '@yoopta/action-menu-list';
+import Toolbar, { DefaultToolbarRender } from '@yoopta/toolbar';
+import LinkTool, { DefaultLinkToolRender } from '@yoopta/link-tool';
+import ReadonlyEditor from '@/components/ReadonlyEditor';
 
-const DraftPreview = ({ Post }: { Post: DraftPost[] }) => {
+// Memoize plugins
+const plugins = [Paragraph, Accordion, HeadingOne, HeadingTwo, HeadingThree, Blockquote, Callout, NumberedList, BulletedList, TodoList, Code, Link, Embed, ImagePlugin, Video, File];
+
+// Memoize marks
+const MARKS = [Bold, Italic, CodeMark, Underline, Strike, Highlight];
+
+// Memoize tools
+const TOOLS = {
+    ActionMenu: {
+        render: DefaultActionMenuRender,
+        tool: ActionMenuList
+    },
+    Toolbar: {
+        render: DefaultToolbarRender,
+        tool: Toolbar
+    },
+    LinkTool: {
+        render: DefaultLinkToolRender,
+        tool: LinkTool
+    }
+};
+
+// Separate component for action buttons
+const ActionButtons = React.memo(({ onPublish, onDelete, onEdit, id }: { onPublish: () => void; onDelete: () => void; onEdit: () => void; id: string }) => (
+    <div className="w-full flex justify-end gap-4 py-4 px-5">
+        <Button type="button" variant="default" onClick={onPublish} className="uppercase font-semibold tracking-wider">
+            Publish
+        </Button>
+        <Button onClick={onEdit}>Edit</Button>
+        <Button type="button" variant="destructive" onClick={onDelete} className="uppercase font-semibold tracking-wider">
+            Delete
+        </Button>
+    </div>
+));
+
+const DraftPreview = React.memo(({ Post }: { Post: DraftPost[] }) => {
     const router = useRouter();
 
-    const handlePublish = async () => {
+    const handlePublish = useCallback(async () => {
         try {
             const response = await PublishDraft(Post[0]);
-            if (response == 'Insufficient details') {
+            if (response === 'Insufficient details') {
                 toast.error('Insufficient details');
-            } else if (response == 'Server Error') {
+            } else if (response === 'Server Error') {
                 toast.error('Something went wrong');
-            } else if (response == 'Successful') {
+            } else if (response === 'Successful') {
                 toast.success('Published Draft');
                 router.push('/preview');
                 router.refresh();
@@ -25,16 +80,16 @@ const DraftPreview = ({ Post }: { Post: DraftPost[] }) => {
         } catch (error) {
             toast.error('Something went wrong');
         }
-    };
+    }, [Post, router]);
 
-    const handleDelete = async () => {
+    const handleDelete = useCallback(async () => {
         try {
             const response = await DeleteDraft(Post[0].id);
-            if (response == 'Insufficient details') {
+            if (response === 'Insufficient details') {
                 toast.error('Insufficient details');
-            } else if (response == 'Server Error') {
+            } else if (response === 'Server Error') {
                 toast.error('Something went wrong');
-            } else if (response == 'Successful') {
+            } else if (response === 'Successful') {
                 toast.success('Deleted Draft');
                 router.push('/preview');
                 router.refresh();
@@ -42,53 +97,39 @@ const DraftPreview = ({ Post }: { Post: DraftPost[] }) => {
         } catch (error) {
             toast.error('Something went wrong');
         }
-    };
+    }, [Post, router]);
 
-    const handleEdit = async (id: string) => {
-        router.push(`/editor/modify/${id}`);
-    };
+    const handleEdit = useCallback(
+        (id: string) => {
+            router.push(`/editor/modify/${id}`);
+        },
+        [router]
+    );
+
+    console.log('Post', Post);
 
     return Post?.map((item, index) => (
-        <div key={index}>
-            <div className="w-full flex justify-end gap-4 py-4 px-5">
-                <Button type="button" variant="default" onClick={handlePublish} className="uppercase font-semibold tracking-wider">
-                    Publish
-                </Button>
-                <Button onClick={() => handleEdit(item.id)}>Edit</Button>
-                <Button type="button" variant="destructive" onClick={handleDelete} className="uppercase font-semibold tracking-wider">
-                    Delete
-                </Button>
-            </div>
-
-            {/* ---------------------------------------Preview------------------------------------ */}
-
-            <div key={index} className=" space-y-3 p-1 lg:p-3 ">
-                <h1 className="text-2xl md:text-3xl font-semibold text-center">{item?.title}</h1>
-                <div className="flex flex-col gap-2">
-                    {item?.featuredImg && (
-                        <div className="relative w-full min-h-[250px] lg:min-h-[500px]">
+        <div key={index} className="w-full pb-10">
+            <ActionButtons onPublish={handlePublish} onDelete={handleDelete} onEdit={() => handleEdit(item.id)} id={item.id} />
+            <div className="w-full">
+                <h1 className="text-center text-2xl font-semibold mb-1">{item.title}</h1>
+                {item.featuredImg && (
+                    <div className="">
+                        <div className="relative w-full max-w-[800px] aspect-[4/3] mx-auto">
                             <Image src={item.featuredImg} alt={item.title} fill className="lg:object-contain object-cover" />
                         </div>
-                    )}
-                    <p className="text-center text-xs md:text-sm">{item?.imgCaption}</p>
+                        <p className="text-center text-sm mt-2 text-gray-600 dark:text-gray-400">{item.imgCaption}</p>
+                    </div>
+                )}
+                <div className="w-full max-w-[800px] mx-auto">
+                    <ReadonlyEditor content={item.content} />
                 </div>
-                <div className="px-0 md:px-3 py-2">
-                    <div className="content tracking-normal md:tracking-wide font-normal text-base lg:text-lg !font-Roboto" dangerouslySetInnerHTML={{ __html: item?.content ?? '' }}></div>
-                </div>
-            </div>
-
-            {/* -------------------------------------------------------------------------------------------- */}
-
-            <div className="w-full flex justify-center gap-4 py-4 px-5">
-                <Button type="button" variant="default" onClick={handlePublish} className="uppercase font-semibold tracking-wider">
-                    Publish
-                </Button>
-                <Button type="button" variant="destructive" onClick={handleDelete} className="uppercase font-semibold tracking-wider">
-                    Delete
-                </Button>
             </div>
         </div>
     ));
-};
+});
+
+DraftPreview.displayName = 'DraftPreview';
+ActionButtons.displayName = 'ActionButtons';
 
 export default DraftPreview;

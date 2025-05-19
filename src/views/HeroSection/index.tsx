@@ -1,5 +1,7 @@
+'use client';
 import HeroCard from '@/components/HeroCard';
 import { RevealY } from '@/utils/animation/revealY';
+import { Loader } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 interface HeroNews {
@@ -14,28 +16,13 @@ interface HeroNews {
     };
 }
 
-const HeroSection = () => {
-    const [heroNews, setHeroNews] = useState<HeroNews[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        const fetchHeroNews = async () => {
-            try {
-                const response = await fetch('/api/hero-section');
-                const data = await response.json();
-                setHeroNews(data.heroSection);
-            } catch (error) {
-                console.error('Failed to fetch hero section news:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchHeroNews();
-    }, []);
-
+const HeroSection = ({ heroNews, loading }: { heroNews: HeroNews[]; loading: boolean }) => {
     if (loading) {
-        return <div>Loading...</div>;
+        return (
+            <div className="w-full h-full flex items-center justify-center">
+                <Loader />
+            </div>
+        );
     }
 
     return (

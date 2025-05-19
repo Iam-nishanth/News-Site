@@ -28,14 +28,8 @@ export default async function Users() {
 
     const data = await getData();
     if (data) {
-        filteredData = data.filter((user) => user.id !== userId);
+        filteredData = data;
     }
-
-    // Ensure filteredData is an array before rendering
-    // if (!Array.isArray(filteredData)) {
-    //   console.error("filteredData is not an array:", filteredData);
-    //   return <div>Error: Data is not in the expected format.</div>;
-    // }
 
     return <AdminWrapper>{filteredData.length > 0 && <UserTable data={filteredData} />}</AdminWrapper>;
 }

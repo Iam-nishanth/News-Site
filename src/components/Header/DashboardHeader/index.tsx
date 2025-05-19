@@ -1,11 +1,11 @@
 'use client';
 import React, { useState } from 'react';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger, SheetClose, SheetFooter } from '@/components/ui/sheet';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 import { Button, buttonVariants } from '../../ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Edit, Layers, LucideUserCheck, MenuIcon, NotebookText, SettingsIcon, UserCog } from 'lucide-react';
+import { Edit, HomeIcon, Layers, LayoutGrid, LucideUserCheck, MenuIcon, NotebookText, SettingsIcon, UserCog } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSession } from 'next-auth/react';
@@ -29,6 +29,11 @@ const DashBoardHeader = ({ user }: { user?: User }) => {
     const SheetLinks = role
         ? [
               {
+                  name: 'Dashboard',
+                  link: '/admin',
+                  Icon: <LayoutGrid className="w-5 h-5" />
+              },
+              {
                   name: 'Editor',
                   link: '/editor',
                   Icon: <Edit className="w-5 h-5" />
@@ -37,6 +42,33 @@ const DashBoardHeader = ({ user }: { user?: User }) => {
                   name: 'Users',
                   link: '/users',
                   Icon: <LucideUserCheck className="w-5 h-5" />
+              },
+              {
+                  name: 'Categories',
+                  link: '/categories',
+                  Icon: <Layers className="w-5 h-5" />
+              },
+              {
+                  name: 'Banners',
+                  link: '/banners',
+                  Icon: (
+                      <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="lucide lucide-grid2x2-plus-icon lucide-grid-2x2-plus"
+                      >
+                          <path d="M12 3v17a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1H3" />
+                          <path d="M16 19h6" />
+                          <path d="M19 22v-6" />
+                      </svg>
+                  )
               },
               {
                   name: 'Drafts',
@@ -59,6 +91,11 @@ const DashBoardHeader = ({ user }: { user?: User }) => {
                   name: 'Editor',
                   link: '/editor',
                   Icon: <Edit className="w-5 h-5" />
+              },
+              {
+                  name: 'Categories',
+                  link: '/categories',
+                  Icon: <Layers className="w-5 h-5" />
               },
               {
                   name: 'Profile',

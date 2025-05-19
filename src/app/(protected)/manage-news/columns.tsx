@@ -15,7 +15,7 @@ import { toast } from 'sonner';
 export type ROW = {
     id: string;
     title: string;
-    categorySlug: string;
+    categorySlug: string | null;
     createdAt: Date;
     featuredImg: string | null;
 };
@@ -67,7 +67,7 @@ export const columns: ColumnDef<ROW>[] = [
 
             return (
                 <Link className="hover:text-blue-500 hover:underline underline-offset-1 transition-colors" href={`/category/${category}`}>
-                    {category.toUpperCase()}
+                    {category?.toUpperCase()}
                 </Link>
             );
         }

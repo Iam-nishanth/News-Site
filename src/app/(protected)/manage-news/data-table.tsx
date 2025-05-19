@@ -85,9 +85,9 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
                 </div>
             </div>
 
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
+            <div className="rounded-md border-input border-2">
+                <Table className="border-none">
+                    <TableHeader className="border-none">
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => {

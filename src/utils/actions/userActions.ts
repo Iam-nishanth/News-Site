@@ -165,3 +165,27 @@ export const submitContactForm = async (data: ContactValidationSchema) => {
         return { status: 'failed' };
     }
 };
+
+export const getUserArticles = async (userEmail: string) => {
+    try {
+        const articles = await prisma.news.findMany({
+            where: {
+                userEmail: userEmail
+            },
+            include: {
+                cat: {
+                    select: {
+                        title: true
+                    }
+                }
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        });
+        return articles;
+    } catch (error) {
+        console.error('Error fetching user articles:', error);
+        return null;
+    }
+};

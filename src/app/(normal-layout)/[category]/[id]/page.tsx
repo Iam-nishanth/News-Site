@@ -33,7 +33,18 @@ const Previewpage = async ({ params }: Props) => {
     return (
         <MaxWidthWrapper className="max-w-screen-lg">
             <Suspense fallback={<Loader />}>
-                <NewsPreview Post={Post} similar={similarData?.filter((item) => item.id !== params.id)} />
+                <NewsPreview
+                    Post={Post.map((post) => ({
+                        ...post,
+                        categorySlug: post.categorySlug || '' // Convert null to empty string
+                    }))}
+                    similar={similarData
+                        ?.filter((item) => item.id !== params.id)
+                        ?.map((item) => ({
+                            ...item,
+                            categorySlug: item.categorySlug || '' // Convert null to empty string
+                        }))}
+                />
             </Suspense>
         </MaxWidthWrapper>
     );

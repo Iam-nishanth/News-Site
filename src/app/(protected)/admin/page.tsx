@@ -1,27 +1,45 @@
-import React from "react";
-import MaxWidthWrapper from "@/components/common/MaxWidthWrapper";
-import { LogoutButton } from "@/components/common/AuthButtons";
-import { signIn } from "next-auth/react";
-import { Button } from "@/components/ui/button";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/utils/auth";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import RecentArticles from '@/components/recent-articles';
+import StatsCards from '@/components/stats-cards';
+import TopCategories from '@/components/top-categories';
+import RecentComments from '@/components/recent-comments';
+import AdminWrapper from '@/components/admin-components/AdminWrapper';
 
-export default async function AdminPage() {
-  const session = await getServerSession(authOptions);
+export default async function AdminDashboard() {
+    return (
+        <AdminWrapper className="flex flex-col gap-5 py-3">
+            <StatsCards />
 
-  return (
-    <MaxWidthWrapper className="flex flex-col min-h-96 justify-center items-center">
-      <h1 className=" text-4xl">Admin Page</h1>
-      {session && session.user ? (
-        <>
-          <LogoutButton />
-          <p>Welcome {session.user.name}</p>
-        </>
-      ) : (
-        <Button onClick={() => signIn()} type="button" variant="outline">
-          Sign In
-        </Button>
-      )}
-    </MaxWidthWrapper>
-  );
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Recent Articles</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <RecentArticles />
+                    </CardContent>
+                </Card>
+
+                <div className="space-y-5">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Top Categories</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <TopCategories />
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Recent Comments</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <RecentComments />
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        </AdminWrapper>
+    );
 }

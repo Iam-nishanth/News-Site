@@ -1,0 +1,1 @@
+user_pref("devtools.debugger.remote-enabled", true); user_pref("browser.cache.disk.enable", false); user_pref("browser.cache.memory.enable", false); user_pref("browser.sessionhistory.max_entries", 2); user_pref("browser.sessionstore.interval", 60000); user_pref("browser.tabs.remote.autostart", false);

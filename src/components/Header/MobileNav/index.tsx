@@ -106,13 +106,12 @@ export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>((props, ref) => 
             )}
         >
             <NavHeader toggle={toggle} />
-
             <div>
                 {menuItems.map((item, index) => {
                     return !item.items ? (
                         <Link
                             onClick={toggle}
-                            key={index}
+                            key={`menu-item-${index}`}
                             href={item.link}
                             className={`flex items-center gap-4 py-2 rounded-lg font-medium ${
                                 path.match(item.link) ? 'bg-blue-500 dark:text-white text-black' : 'dark:text-gray-300 text-black hover:bg-blue-500 dark:hover:bg-gray-700'
@@ -122,7 +121,7 @@ export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>((props, ref) => 
                             <span>{item.name}</span>
                         </Link>
                     ) : (
-                        <Accordion type="single" collapsible>
+                        <Accordion key={`accordion-${index}`} type="single" collapsible>
                             <AccordionItem value="item-1">
                                 <AccordionTrigger>
                                     <p className="flex items-center gap-4">
@@ -130,8 +129,8 @@ export const Sidebar = forwardRef<HTMLDivElement, SidebarProps>((props, ref) => 
                                         {item.name}
                                     </p>
                                 </AccordionTrigger>
-                                {item.items.map((subItem, index) => (
-                                    <AccordionContent key={`subItem-${index}`}>
+                                {item.items.map((subItem, subIndex) => (
+                                    <AccordionContent key={`subItem-${index}-${subIndex}`}>
                                         <Link
                                             onClick={toggle}
                                             className={`flex items-center gap-4 px-3 py-2 rounded-lg ${
