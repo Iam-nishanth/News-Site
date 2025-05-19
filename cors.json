@@ -1,0 +1,8 @@
+[
+    {
+        "origin": ["http://localhost:3000", "https://hard-yards.vercel.app"],
+        "responseHeader": ["Content-Type"],
+        "method": ["GET", "HEAD", "DELETE", "POST", "PUT", "PATCH"],
+        "maxAgeSeconds": 3600
+    }
+]

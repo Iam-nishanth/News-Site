@@ -1,3 +1,5 @@
+'use client';
+
 import HeroCard from '@/components/HeroCard';
 import { RevealY } from '@/utils/animation/revealY';
 import { useEffect, useState } from 'react';

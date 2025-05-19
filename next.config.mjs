@@ -11,6 +11,12 @@ const nextConfig = {
     images: {
         domains: ['tmpfiles.org', "res.cloudinary.com", "firebasestorage.googleapis.com"],
     },
+    // Enable Turbopack
+    experimental: {
+    },
+    turbopack: {
+        resolveExtensions: ['.mdx', '.tsx', '.ts', '.jsx', '.js', '.mjs', '.json'],
+    },
 };
 
 export default nextConfig;

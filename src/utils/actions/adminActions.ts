@@ -56,12 +56,16 @@ export const getAvalilableCategories = async () => {
 
     try {
         const categories = await prisma.category.findMany({
-            select: { title: true }
+            select: {
+                id: true,
+                slug: true,
+                title: true,
+                img: true
+            }
         });
-        const categoryTitles = categories.map((category) => category.title);
-        return categoryTitles;
+        return categories;
     } catch (error) {
-        console.log(error);
+        console.error('Error fetching categories:', error);
         return null;
     }
 };
