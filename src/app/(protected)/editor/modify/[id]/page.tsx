@@ -1,7 +1,7 @@
 import React from 'react';
 import { getDraft } from '@/utils/actions/draftActions';
 import MaxWidthWrapper from '@/components/common/MaxWidthWrapper';
-import dynamic from 'next/dynamic';
+import { notFound, redirect } from 'next/navigation';
 import ModifyPost from '@/views/ModifyPost';
 
 interface Props {
@@ -13,12 +13,13 @@ async function getData(id: string) {
         const draftPost = await getDraft(id);
         return draftPost;
     } catch (error) {
-        console.log(error);
+        console.error('Error fetching draft:', error);
         return null;
     }
 }
 
 const ModifyPostPage = async ({ params }: Props) => {
+    console.log('params', await params);
     const data = await getData(params.id);
 
     return <MaxWidthWrapper className="relative py-5">{data && <ModifyPost post={data} />}</MaxWidthWrapper>;

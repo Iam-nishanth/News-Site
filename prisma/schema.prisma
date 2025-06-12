@@ -9,55 +9,74 @@ datasource db {
 }
 
 model Category {
-  id        String   @id @map("_id")
-  createdAt DateTime @db.Date
-  /// Could not determine type: the field only had null or empty values in the sample set.
-  img       Json?
+  id        String   @id @default(cuid()) @map("_id")
   slug      String   @unique
   title     String
-  updatedAt DateTime @db.Date
+  img       Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Comment {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(cuid()) @map("_id")
 }
 
 model DraftPost {
-  id   String @id @default(auto()) @map("_id") @db.ObjectId
-  /// Field referred in an index, but found no data to define the type.
-  slug Json?  @unique
+  id           String   @id @default(cuid()) @map("_id")
+  categorySlug String
+  content      String
+  featuredImg  String
+  imgCaption   String
+  slug         String   @unique
+  tags         String[]
+  title        String
+  headingColor String?
+  userEmail    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model HeroSection {
-  id       String @id @default(auto()) @map("_id") @db.ObjectId
-  /// Field referred in an index, but found no data to define the type.
-  newsSlug Json?  @unique
-  /// Field referred in an index, but found no data to define the type.
-  position Json?  @unique
+  id       String @id @default(cuid()) @map("_id")
+  newsSlug String @unique
+  position Int    @unique
 }
 
 model HomeGrid {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(cuid()) @map("_id")
 }
 
 model News {
-  id   String @id @default(auto()) @map("_id") @db.ObjectId
-  /// Field referred in an index, but found no data to define the type.
-  slug Json?  @unique
+  id           String   @id @default(cuid()) @map("_id")
+  categorySlug String
+  content      String
+  featuredImg  String
+  imgCaption   String
+  slug         String   @unique
+  tags         String[]
+  title        String
+  headingColor String?
+  userEmail    String
+  homeGridId   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model User {
-  id        String   @id @map("_id")
-  createdAt DateTime @db.Date
+  id        String   @id @default(cuid()) @map("_id")
   email     String   @unique
   name      String
   password  String
   phoneNo   String
   role      String
-  updatedAt DateTime @db.Date
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model VerificationToken {
-  id    String @id @default(auto()) @map("_id") @db.ObjectId
-  token Json?  @unique
+  id      String   @id @default(cuid()) @map("_id")
+  token   String   @unique
+  expires DateTime @db.Date
+
+  @@unique([token, expires])
 }

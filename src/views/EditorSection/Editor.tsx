@@ -46,9 +46,10 @@ import ActionMenuList, { DefaultActionMenuRender } from '@yoopta/action-menu-lis
 import Toolbar, { DefaultToolbarRender } from '@yoopta/toolbar';
 import LinkTool, { DefaultLinkToolRender } from '@yoopta/link-tool';
 import { html } from '@yoopta/exports';
+import { Button } from '@/components/ui/button';
 
 interface Props {
-    categories: string[];
+    categories: Array<string | { id: string; slug: string; title: string; img?: string }>;
 }
 const MARKS = [Bold, Italic, CodeMark, Underline, Strike, Highlight];
 
@@ -141,14 +142,16 @@ const initialContent = {
 export default function Editor({ categories }: Props) {
     const { theme: activeTheme } = useTheme();
     const selectionRef = useRef(null);
-    const [content, setContent] = useState<YooptaContentValue>(initialContent);
+    const [editorReady, setEditorReady] = useState(false);
+    const [content, setContent] = useState<YooptaContentValue>({});
     const [previewContent, setPreviewContent] = useState<string>('');
     const [preview, setPreview] = useState<boolean>(false);
     const [previewId, setPreviewId] = useState<string>('');
     const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
     const [tags, setTags] = useState<Tag[]>([]);
     const router = useRouter();
-    const [headingColor, setHeadingColor] = useState('#ffffff');
+    const [headingColor, setHeadingColor] = useState('#c70000');
+    const [manuallyUpdated, setManuallyUpdated] = useState(false);
 
     // Define TOOLS inside the component using the render functions
     const TOOLS = useMemo(
@@ -176,27 +179,123 @@ export default function Editor({ categories }: Props) {
 
     // Initialize editor with content
     useEffect(() => {
-        if (editor) {
-            editor.setEditorValue(initialContent);
-        }
+        let mounted = true;
+
+        const initEditor = async () => {
+            if (editor && mounted) {
+                try {
+                    // First set empty content to ensure proper initialization
+                    editor.setEditorValue({});
+
+                    // Small delay to ensure DOM is ready
+                    await new Promise((resolve) => setTimeout(resolve, 100));
+
+                    if (mounted) {
+                        // Now set the actual content
+                        editor.setEditorValue(initialContent);
+                        setContent(initialContent);
+
+                        // Generate initial preview content
+                        try {
+                            const htmlString = html.serialize(editor, initialContent);
+                            console.log('Initial HTML generated:', htmlString?.substring(0, 50));
+                            if (htmlString) {
+                                setPreviewContent(htmlString);
+                            }
+                        } catch (serializeError) {
+                            console.error('Initial serialization error:', serializeError);
+                        }
+
+                        setEditorReady(true);
+
+                        // Add a paste event listener to the editor
+                        setTimeout(() => {
+                            if (!mounted) return;
+
+                            const editorElement = document.querySelector('.yoopta-editor');
+                            if (editorElement) {
+                                const pasteHandler = () => {
+                                    // Use setTimeout to allow the paste to complete
+                                    setTimeout(() => {
+                                        try {
+                                            const newContent = editor.getEditorValue();
+                                            if (newContent && Object.keys(newContent).length > 0) {
+                                                setContent(newContent);
+                                                setManuallyUpdated(true);
+
+                                                try {
+                                                    const htmlString = html.serialize(editor, newContent);
+                                                    if (htmlString) {
+                                                        setPreviewContent(htmlString);
+                                                        console.log('Content updated after paste');
+                                                    }
+                                                } catch (serializeError) {
+                                                    console.error('Paste serialization error:', serializeError);
+                                                }
+                                            }
+                                        } catch (error) {
+                                            console.error('Error handling paste:', error);
+                                        }
+                                    }, 300); // Increased timeout for better paste handling
+                                };
+
+                                editorElement.addEventListener('paste', pasteHandler);
+
+                                // Store the handler for cleanup
+                                if (mounted) {
+                                    (editorElement as any)._pasteHandler = pasteHandler;
+                                }
+                            }
+                        }, 500);
+                    }
+                } catch (error) {
+                    console.error('Error initializing editor:', error);
+                    if (mounted) {
+                        // Keep using empty content if initialization fails
+                        setContent({});
+                        setEditorReady(true);
+                    }
+                }
+            }
+        };
+
+        initEditor();
+
+        return () => {
+            mounted = false;
+            // Remove the paste event listener
+            const editorElement = document.querySelector('.yoopta-editor');
+            if (editorElement && (editorElement as any)._pasteHandler) {
+                editorElement.removeEventListener('paste', (editorElement as any)._pasteHandler);
+                (editorElement as any)._pasteHandler = null;
+            }
+        };
     }, [editor]);
 
     // Listen for editor content changes
     useEffect(() => {
-        if (editor) {
+        if (editor && editorReady) {
             const handleEditorChange = () => {
                 try {
                     const editorContent = editor.getEditorValue();
-                    setContent(editorContent);
-                    const htmlContent = html.serialize(editor, editorContent);
-                    setPreviewContent(htmlContent);
+                    if (editorContent && Object.keys(editorContent).length > 0) {
+                        setContent(editorContent);
+                        setManuallyUpdated(true);
+
+                        // Direct serialization
+                        try {
+                            const htmlString = html.serialize(editor, editorContent);
+                            if (htmlString) {
+                                setPreviewContent(htmlString);
+                            }
+                        } catch (serializeError) {
+                            console.error('Serialization error in handleEditorChange:', serializeError);
+                        }
+                    }
                 } catch (error) {
-                    console.error('Error updating preview:', error);
+                    console.error('Error in handleEditorChange:', error);
                 }
             };
-
-            // Initial content update
-            handleEditorChange();
 
             // Subscribe to changes
             editor.on('change', handleEditorChange);
@@ -204,18 +303,23 @@ export default function Editor({ categories }: Props) {
                 editor.off('change', handleEditorChange);
             };
         }
-    }, [editor]);
+    }, [editor, editorReady]);
 
     const uploadFileWrapper = async (file: File) => {
         return await uploadFileToFirebase(file);
     };
 
-    console.log('HTML Content: ', html.serialize(editor, content));
-    console.log('Yoopta Content: ', content);
+    // Only log when editor is ready
+    useEffect(() => {
+        if (editor && editorReady) {
+            console.log('HTML Content: ', html.serialize(editor, content));
+            console.log('Yoopta Content: ', content);
+        }
+    }, [editor, editorReady, content]);
 
     const FormSchema = z.object({
         title: z.string().min(1, 'Title is required').max(100),
-        headingColor: z.string().default('#ffffff').optional(),
+        headingColor: z.string().default('#c70000'),
         categorySlug: z.string().min(1, 'Category is required'),
         imgCaption: z.string().min(1, 'Image caption is required').max(200),
         tags: z.array(
@@ -240,16 +344,53 @@ export default function Editor({ categories }: Props) {
 
     // Convert to HTML when saving
     const onSubmit = async (data: FormType) => {
-        // Ensure we have the latest content
-        const currentContent = editor.getEditorValue();
-        if (!currentContent || Object.keys(currentContent).length === 0) {
-            toast.error('Please add some content to the editor');
-            return;
+        // Get the latest content directly from editor
+        let currentContent;
+        try {
+            // Get current content from editor
+            currentContent = editor.getEditorValue();
+
+            // Check if we've manually updated the content or if the content is empty
+            if ((!currentContent || Object.keys(currentContent).length === 0) && manuallyUpdated) {
+                // Use our React state content if the editor returns empty but we know it's been updated
+                currentContent = content;
+                console.log('Using state content instead of editor content');
+            } else if (!manuallyUpdated && (!currentContent || Object.keys(currentContent).length === 0)) {
+                // If not manually updated and editor returns empty, use initialContent
+                currentContent = initialContent;
+                console.log('Using initialContent as fallback');
+            }
+
+            // Final check to ensure we have content
+            if (!currentContent || Object.keys(currentContent).length === 0) {
+                toast.error('Please add some content to the editor');
+                return;
+            }
+
+            console.log('Manually updated:', manuallyUpdated);
+            console.log('Content keys:', Object.keys(currentContent).length);
+        } catch (error) {
+            console.error('Error getting editor content:', error);
+            // Use state as fallback if editor access fails
+            if (manuallyUpdated) {
+                currentContent = content;
+            } else {
+                currentContent = initialContent;
+            }
+
+            if (!currentContent || Object.keys(currentContent).length === 0) {
+                toast.error('Please add some content to the editor');
+                return;
+            }
         }
+
+        console.log('Form data headingColor:', data.headingColor);
+        console.log('Component state headingColor:', headingColor);
 
         const formData = {
             ...data,
-            title: `${data.title} ${data.headingColor}`,
+            title: data.title,
+            headingColor: data.headingColor || headingColor || '#c70000',
             content: JSON.stringify(currentContent),
             htmlContent: html.serialize(editor, currentContent),
             featuredImg: uploadedFileUrl,
@@ -260,10 +401,13 @@ export default function Editor({ categories }: Props) {
         console.log('Final Data:', formData);
 
         try {
+            // Re-enable the draft creation
             const SaveDraft = await createDraft({
                 ...formData,
                 content: JSON.stringify(currentContent),
-                htmlContent: html.serialize(editor, currentContent)
+                htmlContent: html.serialize(editor, currentContent),
+                headingColor: data.headingColor || headingColor, // Make sure headingColor is passed
+                featuredImg: uploadedFileUrl || '' // Ensure featuredImg is never null
             });
             if (typeof SaveDraft === 'string') {
                 if (SaveDraft === 'Insufficient details') {
@@ -275,6 +419,11 @@ export default function Editor({ categories }: Props) {
                 toast.success('Saved Draft', { position: 'top-right' });
                 setPreview(true);
             }
+
+            router.push(`/preview/`);
+
+            // Keep the debug toast too
+            toast.info('Content captured successfully', { position: 'top-right' });
         } catch (error) {
             toast.error('Failed to save draft', { position: 'top-right' });
         }
@@ -286,6 +435,44 @@ export default function Editor({ categories }: Props) {
         if (previewId !== '') router.push(`/preview/${previewId}`);
         else router.push('/preview');
     };
+
+    // Add this function near other utility functions
+    const generatePreviewHtml = (editorContent: any): string => {
+        try {
+            // Just try direct serialization
+            if (editor && editorContent) {
+                return html.serialize(editor, editorContent) || '<p>No content available</p>';
+            }
+            return '<p>No content available</p>';
+        } catch (error) {
+            console.error('Error generating preview HTML:', error);
+            return '<p>Error generating preview</p>';
+        }
+    };
+
+    // Add a safety check for editor initialization
+    useEffect(() => {
+        if (editorReady && editor && !previewContent) {
+            console.log('Safety check - attempting to regenerate preview');
+            try {
+                const currentContent = editor.getEditorValue();
+                if (currentContent && Object.keys(currentContent).length > 0) {
+                    const htmlString = html.serialize(editor, currentContent);
+                    if (htmlString) {
+                        console.log('Preview regenerated in safety check');
+                        setPreviewContent(htmlString);
+                    }
+                }
+            } catch (error) {
+                console.error('Error in safety check:', error);
+            }
+        }
+    }, [editorReady, editor, previewContent]);
+
+    useEffect(() => {
+        // Initialize the headingColor in the form when component mounts
+        setValue('headingColor', headingColor);
+    }, [setValue, headingColor]);
 
     return (
         <div className="flex flex-col lg:flex-row gap-6">
@@ -302,8 +489,10 @@ export default function Editor({ categories }: Props) {
                                     type="color"
                                     value={headingColor}
                                     onChange={(e) => {
-                                        setHeadingColor(e.target.value);
-                                        setValue('headingColor', e.target.value);
+                                        const newColor = e.target.value;
+                                        setHeadingColor(newColor);
+                                        setValue('headingColor', newColor);
+                                        console.log('Color updated:', newColor);
                                     }}
                                     className="w-12 h-12 p-1 rounded-md border border-input cursor-pointer"
                                 />
@@ -329,12 +518,12 @@ export default function Editor({ categories }: Props) {
                                             <SelectLabel>Category</SelectLabel>
                                             {categories?.length > 0
                                                 ? categories.map((item, index) => (
-                                                      <SelectItem key={index} value={item}>
-                                                          {item}
+                                                      <SelectItem key={typeof item === 'object' ? item.id : `category-${index}-${item}`} value={typeof item === 'object' ? item.slug : item}>
+                                                          {typeof item === 'object' ? item.title : item}
                                                       </SelectItem>
                                                   ))
                                                 : offlineCategories.map((item, index) => (
-                                                      <SelectItem key={index} value={item}>
+                                                      <SelectItem key={`offline-category-${index}-${item}`} value={item}>
                                                           {item}
                                                       </SelectItem>
                                                   ))}
@@ -380,30 +569,74 @@ export default function Editor({ categories }: Props) {
                     <div className="space-y-2">
                         <Label className={cn('pl-2 text-base font-medium')}>News Content</Label>
                         <div className="w-full px-12 border-2 border-input rounded-md">
-                            <YooptaEditor
-                                className="w-full"
-                                style={{
-                                    width: '100% !important',
-                                    padding: '0'
-                                }}
-                                editor={editor}
-                                plugins={plugins}
-                                tools={TOOLS}
-                                marks={MARKS}
-                                selectionBoxRoot={selectionRef}
-                                value={content}
-                                onChange={(newContent) => {
-                                    setContent(newContent);
-                                    try {
-                                        const htmlContent = html.serialize(editor, newContent);
-                                        setPreviewContent(htmlContent);
-                                    } catch (error) {
-                                        console.error('Error updating preview:', error);
-                                    }
-                                }}
-                                autoFocus
-                            />
+                            {editorReady && (
+                                <YooptaEditor
+                                    className="w-full yoopta-editor"
+                                    style={{
+                                        width: '100% !important',
+                                        padding: '0'
+                                    }}
+                                    editor={editor}
+                                    plugins={plugins}
+                                    tools={TOOLS}
+                                    marks={MARKS}
+                                    selectionBoxRoot={selectionRef}
+                                    value={content}
+                                    onChange={(newContent) => {
+                                        if (newContent && Object.keys(newContent).length > 0) {
+                                            try {
+                                                // Update React state with the editor content
+                                                setContent(newContent);
+                                                setManuallyUpdated(true);
+
+                                                // Generate HTML using direct serialization
+                                                try {
+                                                    const htmlString = html.serialize(editor, newContent);
+                                                    if (htmlString) {
+                                                        console.log('HTML preview generated:', htmlString.substring(0, 50) + '...');
+                                                        setPreviewContent(htmlString);
+                                                    }
+                                                } catch (serializeError) {
+                                                    console.error('Serialization error:', serializeError);
+                                                }
+                                            } catch (error) {
+                                                console.error('Error updating preview:', error);
+                                            }
+                                        }
+                                    }}
+                                    autoFocus
+                                />
+                            )}
                         </div>
+                    </div>
+                    <div className="space-y-2 w-full flex justify-end">
+                        <LoadingButton
+                            type="button"
+                            className="px-4 py-2 font-semibold tracking-wider rounded-md"
+                            onClick={() => {
+                                try {
+                                    if (!editor) {
+                                        toast.error('Editor not ready');
+                                        return;
+                                    }
+
+                                    const currentContent = editor.getEditorValue();
+                                    if (!currentContent) {
+                                        toast.error('No content to preview');
+                                        return;
+                                    }
+
+                                    const htmlString = html.serialize(editor, currentContent);
+                                    setPreviewContent(htmlString);
+                                    toast.success('Preview refreshed');
+                                } catch (error) {
+                                    console.error('Preview error:', error);
+                                    toast.error('Failed to refresh preview');
+                                }
+                            }}
+                        >
+                            Refresh Preview
+                        </LoadingButton>
                     </div>
                     <button type="button" className=" sr-only w-full bg-primary text-white py-2 rounded-md">
                         Save
@@ -449,7 +682,11 @@ export default function Editor({ categories }: Props) {
                                     <p className="text-sm text-muted-foreground text-center">{watch('imgCaption')}</p>
                                 </div>
                             )}
-                            <div className="preview-content [&_iframe]:w-full [&_iframe]:aspect-video" dangerouslySetInnerHTML={{ __html: previewContent || '' }} />
+                            <div
+                                className="preview-content [&_iframe]:w-full [&_iframe]:aspect-video p-4 rounded-md"
+                                dangerouslySetInnerHTML={{ __html: previewContent || '<p>Preview will appear here</p>' }}
+                                style={{ minHeight: '300px' }}
+                            />
                             {tags.length > 0 && (
                                 <div className="flex flex-wrap gap-2 mt-4">
                                     {tags.map((tag) => (

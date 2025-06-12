@@ -209,8 +209,32 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
     const selectionRef = useRef(null);
     const [preview, setPreview] = useState<boolean>(false);
     const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
+    const [headingColor, setHeadingColor] = useState<string>(post.headingColor || '#C70000');
     const [tags, setTags] = useState<Tag[]>([]);
     const router = useRouter();
+
+    const FormSchema = z.object({
+        title: z.string().min(1, 'Username is required').max(100),
+        categorySlug: z.string().min(1, 'Category is required').max(100),
+        imgCaption: z.string().min(1, 'Image caption is required').max(200),
+        headingColor: z.string().min(1, 'Heading color is required').max(100),
+        tags: z.array(
+            z.object({
+                id: z.string(),
+                text: z.string()
+            })
+        )
+    });
+
+    type FormType = z.infer<typeof FormSchema>;
+    const {
+        handleSubmit,
+        register,
+        setValue,
+        formState: { errors, isSubmitting }
+    } = useForm<FormType>({
+        resolver: zodResolver(FormSchema)
+    });
 
     // Memoize the editor instance
     const editor = useMemo(() => {
@@ -220,6 +244,7 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
 
     // Memoize content state
     const [content, setContent] = useState<YooptaContentValue>({});
+    const [manuallyUpdated, setManuallyUpdated] = useState(false);
 
     // Initialize form and editor content
     useEffect(() => {
@@ -229,6 +254,7 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
             setValue('title', post.title);
             setValue('categorySlug', post.categorySlug ?? '');
             setValue('imgCaption', post.imgCaption ?? '');
+            setValue('headingColor', post.headingColor || '#000000');
             setUploadedFileUrl(post.featuredImg);
 
             const initialTags = post.tags.map((tag, index) => ({ id: index.toString(), text: tag }));
@@ -269,13 +295,63 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
                 }
             }
         }
-    }, [post, editor]);
+    }, [post, editor, setValue]);
+
+    // Add paste event listener to the editor
+    useEffect(() => {
+        let mounted = true;
+
+        setTimeout(() => {
+            if (!mounted) return;
+
+            const editorElement = document.querySelector('.yoopta-editor');
+            if (editorElement) {
+                const pasteHandler = () => {
+                    // Use setTimeout to allow the paste to complete
+                    setTimeout(() => {
+                        try {
+                            const newContent = editor.getEditorValue();
+                            if (newContent && Object.keys(newContent).length > 0) {
+                                setContent(newContent);
+                                setManuallyUpdated(true);
+                                console.log('Content updated after paste');
+                            }
+                        } catch (error) {
+                            console.error('Error handling paste:', error);
+                        }
+                    }, 300); // Increased timeout for better paste handling
+                };
+
+                editorElement.addEventListener('paste', pasteHandler);
+
+                // Store the handler for cleanup
+                if (mounted) {
+                    (editorElement as any)._pasteHandler = pasteHandler;
+                }
+            }
+        }, 500);
+
+        return () => {
+            mounted = false;
+            // Remove the paste event listener
+            const editorElement = document.querySelector('.yoopta-editor');
+            if (editorElement && (editorElement as any)._pasteHandler) {
+                editorElement.removeEventListener('paste', (editorElement as any)._pasteHandler);
+                (editorElement as any)._pasteHandler = null;
+            }
+        };
+    }, [editor]);
 
     // Memoize editor change handler
     const handleEditorChange = useCallback(() => {
-        const editorContent = editor.getEditorValue();
-        if (editorContent && Object.keys(editorContent).length > 0) {
-            setContent(editorContent);
+        try {
+            const editorContent = editor.getEditorValue();
+            if (editorContent && Object.keys(editorContent).length > 0) {
+                setContent(editorContent);
+                setManuallyUpdated(true);
+            }
+        } catch (error) {
+            console.error('Error in handleEditorChange:', error);
         }
     }, [editor]);
 
@@ -289,61 +365,73 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
         }
     }, [editor, handleEditorChange]);
 
-    const FormSchema = z.object({
-        title: z.string().min(1, 'Username is required').max(100),
-        categorySlug: z.string().min(1, 'Category is required').max(100),
-        imgCaption: z.string().min(1, 'Image caption is required').max(200),
-        tags: z.array(
-            z.object({
-                id: z.string(),
-                text: z.string()
-            })
-        )
-    });
-
-    type FormType = z.infer<typeof FormSchema>;
-    const {
-        handleSubmit,
-        register,
-        setValue,
-        formState: { errors, isSubmitting }
-    } = useForm<FormType>({
-        resolver: zodResolver(FormSchema)
-    });
-
     // Memoize form submission handler
     const onSubmit = useCallback(
         async (data: FormType) => {
-            const currentContent = editor.getEditorValue();
-            if (!currentContent || Object.keys(currentContent).length === 0) {
-                toast.error('Please add some content to the editor');
-                return;
+            // Get the latest content directly from editor
+            let currentContent;
+            try {
+                // Get current content from editor
+                currentContent = editor.getEditorValue();
+
+                // Check if we've manually updated the content or if the content is empty
+                if ((!currentContent || Object.keys(currentContent).length === 0) && manuallyUpdated) {
+                    // Use our React state content if the editor returns empty but we know it's been updated
+                    currentContent = content;
+                    console.log('Using state content instead of editor content');
+                }
+
+                // Final check to ensure we have content
+                if (!currentContent || Object.keys(currentContent).length === 0) {
+                    toast.error('Please add some content to the editor');
+                    return;
+                }
+
+                console.log('Content keys:', Object.keys(currentContent).length);
+            } catch (error) {
+                console.error('Error getting editor content:', error);
+                // Use state as fallback if editor access fails
+                if (manuallyUpdated) {
+                    currentContent = content;
+                }
+
+                if (!currentContent || Object.keys(currentContent).length === 0) {
+                    toast.error('Please add some content to the editor');
+                    return;
+                }
             }
 
             const htmlContent = html.serialize(editor, currentContent);
+
+            // Ensure all fields match exactly with the Prisma schema
             const formData = {
-                ...data,
                 id: post.id,
+                title: data.title,
+                categorySlug: data.categorySlug,
+                imgCaption: data.imgCaption,
+                tags: data.tags.map((tag) => tag.text),
                 content: JSON.stringify(currentContent),
-                featuredImg: uploadedFileUrl,
-                htmlContent: htmlContent,
-                tags: data.tags.map((tag) => tag.text)
+                featuredImg: uploadedFileUrl || '',
+                headingColor: headingColor || '#C70000'
             };
 
+            console.log('Form data', formData);
             try {
                 const SaveDraft = await modifyDraft(formData);
                 if (SaveDraft === 'Insufficient Details') {
                     toast.error('Insufficient details', { position: 'top-right' });
-                } else if (SaveDraft === 'Server Error') {
+                } else if (SaveDraft === 'Server Error' || SaveDraft === 'User not Exist') {
                     toast.error('Something went wrong', { position: 'top-right' });
+                } else {
+                    toast.success('Saved Draft', { position: 'top-right' });
+                    setPreview(true);
                 }
-                toast.success('Saved Draft', { position: 'top-right' });
-                setPreview(true);
             } catch (error) {
+                console.error('Draft save error:', error);
                 toast.error('Failed to save draft', { position: 'top-right' });
             }
         },
-        [editor, post.id, uploadedFileUrl]
+        [editor, post.id, uploadedFileUrl, headingColor, content, manuallyUpdated]
     );
 
     // Memoize navigation handler
@@ -359,7 +447,22 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
                         <Label className={cn('pl-2 text-base font-medium', errors?.title && 'text-red-600')}>
                             Title <span className="text-red-600">*</span>
                         </Label>
-                        <Input {...register('title')} placeholder="Enter you title" />
+                        <div className="flex items-center gap-4">
+                            <Input {...register('title')} placeholder="Enter you title" className="flex-1" />
+                            <div className="flex items-center gap-2">
+                                <Input
+                                    type="color"
+                                    value={headingColor}
+                                    onChange={(e) => {
+                                        const newColor = e.target.value;
+                                        setHeadingColor(newColor);
+                                        setValue('headingColor', newColor);
+                                        console.log('Color updated:', newColor);
+                                    }}
+                                    className="w-12 h-12 p-1 rounded-md border border-input cursor-pointer"
+                                />
+                            </div>
+                        </div>
                         {errors?.title && <p className="text-red-500">{errors.title.message}</p>}
                     </div>
                     <div className="space-y-2">
@@ -415,7 +518,7 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
                         </Label>
                         <div className="w-full px-12 border-2 border-input rounded-md">
                             <YooptaEditor
-                                className="w-full"
+                                className="w-full yoopta-editor"
                                 style={{
                                     width: '100% !important'
                                 }}
@@ -425,12 +528,51 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
                                 marks={MARKS}
                                 selectionBoxRoot={selectionRef}
                                 value={content}
+                                onChange={(newContent) => {
+                                    if (newContent && Object.keys(newContent).length > 0) {
+                                        try {
+                                            // Update React state with the editor content
+                                            setContent(newContent);
+                                            setManuallyUpdated(true);
+                                            console.log('Content updated in onChange handler');
+                                        } catch (error) {
+                                            console.error('Error updating content:', error);
+                                        }
+                                    }
+                                }}
                                 autoFocus
                             />
                         </div>
                     </div>
 
                     <div className="w-full flex justify-end gap-5">
+                        {/* <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                                try {
+                                    if (!editor) {
+                                        toast.error('Editor not ready');
+                                        return;
+                                    }
+
+                                    const currentContent = editor.getEditorValue();
+                                    if (!currentContent || Object.keys(currentContent).length === 0) {
+                                        toast.error('No content to preview');
+                                        return;
+                                    }
+
+                                    const htmlContent = html.serialize(editor, currentContent);
+                                    console.log('Preview HTML:', htmlContent);
+                                    toast.success('Preview content generated');
+                                } catch (error) {
+                                    console.error('Preview error:', error);
+                                    toast.error('Failed to generate preview');
+                                }
+                            }}
+                        >
+                            Debug Preview
+                        </Button> */}
                         <LoadingButton loading={isSubmitting} disabled={isSubmitting || preview} type="submit" variant="default" className="uppercase font-semibold tracking-wider w-44">
                             {isSubmitting ? 'Please wait' : 'Save'}
                         </LoadingButton>

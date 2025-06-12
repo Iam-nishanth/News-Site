@@ -4,6 +4,7 @@ import prisma from '../connect';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth';
 import { deleteFirebaseFile } from '@/lib/editor';
+import crypto from 'crypto';
 
 export async function generateSlug(name: string): Promise<string> {
     let slug = name.toLowerCase();
@@ -12,12 +13,22 @@ export async function generateSlug(name: string): Promise<string> {
     return slug;
 }
 
-type DraftResponse = (
-    post: Omit<DraftPost, 'id' | 'slug' | 'userEmail' | 'createdAt' | 'updatedAt'>
-) => Promise<'Insufficient details' | 'User not Exist' | 'Server Error' | 'Successful' | { message: string; id: string }>;
+type DraftPostData = Omit<DraftPost, 'id' | 'slug' | 'userEmail' | 'createdAt' | 'updatedAt'> & {
+    headingColor?: string;
+    htmlContent?: string;
+};
+
+type DraftResponse = (post: DraftPostData) => Promise<'Insufficient details' | 'User not Exist' | 'Server Error' | 'Successful' | { message: string; id: string }>;
+
+type ModifyDraftData = Omit<DraftPost, 'createdAt' | 'updatedAt' | 'userEmail' | 'slug'> & {
+    headingColor?: string;
+    htmlContent?: string;
+};
+
+type ModifyResponse = (post: ModifyDraftData) => Promise<'Insufficient Details' | 'User not Exist' | 'Server Error' | 'Success'>;
+
 type PublishDraft = (post: Omit<DraftPost, 'id' | 'createdAt' | 'updatedAt'>) => Promise<'Insufficient details' | 'User not Exist' | 'Server Error' | 'Successful'>;
 type DeleteDraft = (id: string) => Promise<'Insufficient details' | 'Server Error' | 'Successful'>;
-type ModifyResponse = (post: Omit<DraftPost, 'createdAt' | 'updatedAt' | 'userEmail' | 'slug'>) => Promise<'Insufficient Details' | 'User not Exist' | 'Server Error' | 'Success'>;
 
 export const createDraft: DraftResponse = async (post) => {
     const session = await getServerSession(authOptions);
@@ -28,11 +39,12 @@ export const createDraft: DraftResponse = async (post) => {
         const response = await prisma.draftPost.create({
             data: {
                 title: post.title,
-                categorySlug: post.categorySlug,
+                categorySlug: post.categorySlug.toLowerCase(),
                 imgCaption: post.imgCaption,
                 tags: post.tags,
                 content: post.content,
                 featuredImg: post.featuredImg,
+                headingColor: post.headingColor || '#C70000',
                 slug: await generateSlug(post.title),
                 userEmail: session.user.email
             }
@@ -50,20 +62,39 @@ export const modifyDraft: ModifyResponse = async (post) => {
         if (!post) return 'Insufficient Details';
         if (!session?.user) return 'User not Exist';
 
+        console.log('Updating draft with data:', {
+            ...post
+        });
+
+        // Check if the draft exists first
+        const existingDraft = await prisma.draftPost.findUnique({
+            where: { id: post.id }
+        });
+
+        if (!existingDraft) {
+            console.log('Draft not found');
+            return 'Server Error';
+        }
+
+        // Use only the fields that are confirmed to exist in the schema
         const response = await prisma.draftPost.update({
             where: { id: post.id },
             data: {
                 title: post.title,
-                categorySlug: post.categorySlug,
+                categorySlug: typeof post.categorySlug === 'string' ? post.categorySlug.toLowerCase() : post.categorySlug,
                 imgCaption: post.imgCaption,
                 tags: post.tags,
                 content: post.content,
                 featuredImg: post.featuredImg,
-                userEmail: session.user.email
+                headingColor: post.headingColor || '#000000'
+                // Do not update userEmail as it should remain the same
             }
         });
+
+        console.log('Response in modifyDraft', response);
         if (response) return 'Success';
     } catch (error) {
+        console.error('Error in modifyDraft', error);
         return 'Server Error';
     }
     return 'Server Error';
@@ -79,16 +110,25 @@ export const getDrafts = async () => {
 };
 
 export const getDraft = async (id: string) => {
+    console.log('id', id);
     if (!id) return;
 
     try {
+        // // Check if ID is a valid MongoDB ObjectId (24 hex characters)
+        // const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(id);
+
+        // if (!isValidObjectId) {
+        //     console.error(`Invalid ObjectID format: ${id}`);
+        //     return null;
+        // }
+
         const draft = await prisma.draftPost.findUnique({
             where: { id: id }
         });
 
         return draft;
     } catch (error) {
-        console.log(error);
+        console.error('Error fetching draft:', error);
         return null;
     }
 };
@@ -110,8 +150,9 @@ export const PublishDraft: PublishDraft = async (post) => {
                 tags: post.tags,
                 content: post.content,
                 featuredImg: post.featuredImg,
+                headingColor: post.headingColor || null,
                 slug: post.slug,
-                userEmail: existingUser.email,
+                userEmail: post.userEmail,
                 homeGridId: ''
             }
         });
@@ -119,7 +160,7 @@ export const PublishDraft: PublishDraft = async (post) => {
         if (response) {
             const deleteDraft = await prisma.draftPost.delete({
                 where: {
-                    slug: response.slug
+                    slug: post.slug
                 }
             });
 
