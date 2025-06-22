@@ -15,7 +15,7 @@ interface SignUpProps {
 export default async function SignupPage({ searchParams }: SignUpProps) {
     const session = await getServerSession(authOptions);
     if (session && session.user) {
-        redirect(searchParams?.callbackUrl ? searchParams.callbackUrl : '/admin');
+        redirect(searchParams?.callbackUrl ? searchParams.callbackUrl : '/dashboard');
     }
 
     return (

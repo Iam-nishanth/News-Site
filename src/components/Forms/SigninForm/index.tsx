@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Input } from '@/components/ui/input';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
 import { redirect, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Label } from '@/components/ui/label';
@@ -53,11 +53,22 @@ const SignInForm = ({ callbackURL, callbackError }: SignInFormProps) => {
             });
             return;
         } else {
+            // Get the updated session after sign-in
+            const session = await getSession();
+
+            if (!session?.user?.emailVerified) {
+                toast.error('Email not verified', {
+                    description: 'Please verify your email before accessing admin panel',
+                    position: 'top-right'
+                });
+                return;
+            }
+
             toast.success('Success', {
                 description: 'Logged In...',
                 position: 'top-right'
             });
-            router.push(callbackURL ? callbackURL : '/admin');
+            router.push(callbackURL ? callbackURL : '/dashboard');
         }
     };
 

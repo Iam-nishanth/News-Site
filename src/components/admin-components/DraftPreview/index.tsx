@@ -26,6 +26,7 @@ import ActionMenuList, { DefaultActionMenuRender } from '@yoopta/action-menu-lis
 import Toolbar, { DefaultToolbarRender } from '@yoopta/toolbar';
 import LinkTool, { DefaultLinkToolRender } from '@yoopta/link-tool';
 import ReadonlyEditor from '@/components/ReadonlyEditor';
+import { Badge } from '@/components/ui/badge';
 
 // Memoize plugins
 const plugins = [Paragraph, Accordion, HeadingOne, HeadingTwo, HeadingThree, Blockquote, Callout, NumberedList, BulletedList, TodoList, Code, Link, Embed, ImagePlugin, Video, File];
@@ -106,23 +107,30 @@ const DraftPreview = React.memo(({ Post }: { Post: DraftPost[] }) => {
         [router]
     );
 
-    console.log('Post', Post);
-
     return Post?.map((item, index) => (
         <div key={index} className="w-full pb-10">
             <ActionButtons onPublish={handlePublish} onDelete={handleDelete} onEdit={() => handleEdit(item.id)} id={item.id} />
             <div className="w-full">
-                <h1 className="text-center text-2xl font-semibold mb-1">{item.title}</h1>
+                <h1 className="text-center text-2xl font-semibold mb-2">{item.title}</h1>
                 {item.featuredImg && (
                     <div className="">
-                        <div className="relative w-full max-w-[800px] aspect-[4/3] mx-auto">
-                            <Image src={item.featuredImg} alt={item.title} fill className="lg:object-contain object-cover" />
+                        <div className="relative w-full max-w-[800px] aspect-[4/3] mx-auto overflow-hidden rounded-md">
+                            <Image src={item.featuredImg} alt={item.title} fill className="object-cover" />
                         </div>
-                        <p className="text-center text-sm mt-2 text-gray-600 dark:text-gray-400">{item.imgCaption}</p>
+                        <p className="text-center text-sm mt-1 text-gray-600 dark:text-gray-400">{item.imgCaption}</p>
                     </div>
                 )}
                 <div className="w-full max-w-[800px] mx-auto">
                     <ReadonlyEditor content={item.content} />
+                    {item?.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                            {item?.tags.map((tag, index) => (
+                                <span key={index} className="px-2 py-1 bg-primary/10 text-primary rounded-full text-sm">
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

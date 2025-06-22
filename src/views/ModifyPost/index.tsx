@@ -47,6 +47,7 @@ import ActionMenuList, { DefaultActionMenuRender } from '@yoopta/action-menu-lis
 import Toolbar, { DefaultToolbarRender } from '@yoopta/toolbar';
 import LinkTool, { DefaultLinkToolRender } from '@yoopta/link-tool';
 import { html } from '@yoopta/exports';
+import { Separator } from '@/components/ui/separator';
 
 const code = Code.getPlugin;
 code.elements.code.props!.theme = 'GithubLight';
@@ -208,6 +209,7 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
     const { theme: activeTheme } = useTheme();
     const selectionRef = useRef(null);
     const [preview, setPreview] = useState<boolean>(false);
+    const [previewContent, setPreviewContent] = useState<string>('');
     const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
     const [headingColor, setHeadingColor] = useState<string>(post.headingColor || '#C70000');
     const [tags, setTags] = useState<Tag[]>([]);
@@ -231,6 +233,7 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
         handleSubmit,
         register,
         setValue,
+        watch,
         formState: { errors, isSubmitting }
     } = useForm<FormType>({
         resolver: zodResolver(FormSchema)
@@ -249,8 +252,6 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
     // Initialize form and editor content
     useEffect(() => {
         if (post) {
-            console.log('Post to modify', post);
-
             setValue('title', post.title);
             setValue('categorySlug', post.categorySlug ?? '');
             setValue('imgCaption', post.imgCaption ?? '');
@@ -267,6 +268,16 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
                     const parsedContent = JSON.parse(post.content);
                     setContent(parsedContent);
                     editor.setEditorValue(parsedContent);
+
+                    // Generate initial preview content
+                    try {
+                        const htmlString = html.serialize(editor, parsedContent);
+                        if (htmlString) {
+                            setPreviewContent(htmlString);
+                        }
+                    } catch (serializeError) {
+                        console.error('Initial serialization error:', serializeError);
+                    }
                 } catch (error) {
                     console.error('Error parsing content:', error);
                     // Fallback to empty content if parsing fails
@@ -314,6 +325,17 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
                             if (newContent && Object.keys(newContent).length > 0) {
                                 setContent(newContent);
                                 setManuallyUpdated(true);
+
+                                // Update preview content
+                                try {
+                                    const htmlString = html.serialize(editor, newContent);
+                                    if (htmlString) {
+                                        setPreviewContent(htmlString);
+                                    }
+                                } catch (serializeError) {
+                                    console.error('Paste serialization error:', serializeError);
+                                }
+
                                 console.log('Content updated after paste');
                             }
                         } catch (error) {
@@ -349,6 +371,16 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
             if (editorContent && Object.keys(editorContent).length > 0) {
                 setContent(editorContent);
                 setManuallyUpdated(true);
+
+                // Update preview content
+                try {
+                    const htmlString = html.serialize(editor, editorContent);
+                    if (htmlString) {
+                        setPreviewContent(htmlString);
+                    }
+                } catch (serializeError) {
+                    console.error('Serialization error in handleEditorChange:', serializeError);
+                }
             }
         } catch (error) {
             console.error('Error in handleEditorChange:', error);
@@ -386,8 +418,6 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
                     toast.error('Please add some content to the editor');
                     return;
                 }
-
-                console.log('Content keys:', Object.keys(currentContent).length);
             } catch (error) {
                 console.error('Error getting editor content:', error);
                 // Use state as fallback if editor access fails
@@ -415,7 +445,6 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
                 headingColor: headingColor || '#C70000'
             };
 
-            console.log('Form data', formData);
             try {
                 const SaveDraft = await modifyDraft(formData);
                 if (SaveDraft === 'Insufficient Details') {
@@ -426,6 +455,7 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
                     toast.success('Saved Draft', { position: 'top-right' });
                     setPreview(true);
                 }
+                handleOk();
             } catch (error) {
                 console.error('Draft save error:', error);
                 toast.error('Failed to save draft', { position: 'top-right' });
@@ -440,8 +470,8 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
     }, [router]);
 
     return (
-        <div>
-            <div ref={selectionRef} className="relative">
+        <div className="flex flex-col lg:flex-row gap-6">
+            <div ref={selectionRef} className="flex-1">
                 <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col gap-3">
                     <div className="space-y-2">
                         <Label className={cn('pl-2 text-base font-medium', errors?.title && 'text-red-600')}>
@@ -457,7 +487,6 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
                                         const newColor = e.target.value;
                                         setHeadingColor(newColor);
                                         setValue('headingColor', newColor);
-                                        console.log('Color updated:', newColor);
                                     }}
                                     className="w-12 h-12 p-1 rounded-md border border-input cursor-pointer"
                                 />
@@ -534,6 +563,17 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
                                             // Update React state with the editor content
                                             setContent(newContent);
                                             setManuallyUpdated(true);
+
+                                            // Update preview content
+                                            try {
+                                                const htmlString = html.serialize(editor, newContent);
+                                                if (htmlString) {
+                                                    setPreviewContent(htmlString);
+                                                }
+                                            } catch (serializeError) {
+                                                console.error('Serialization error:', serializeError);
+                                            }
+
                                             console.log('Content updated in onChange handler');
                                         } catch (error) {
                                             console.error('Error updating content:', error);
@@ -544,11 +584,10 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
                             />
                         </div>
                     </div>
-
-                    <div className="w-full flex justify-end gap-5">
-                        {/* <Button
+                    <div className="space-y-2 w-full flex justify-end">
+                        <LoadingButton
                             type="button"
-                            variant="outline"
+                            className="px-4 py-2 font-semibold tracking-wider rounded-md"
                             onClick={() => {
                                 try {
                                     if (!editor) {
@@ -557,44 +596,81 @@ const ModifyPost = React.memo(({ post }: { post: DraftPost }) => {
                                     }
 
                                     const currentContent = editor.getEditorValue();
-                                    if (!currentContent || Object.keys(currentContent).length === 0) {
+                                    if (!currentContent) {
                                         toast.error('No content to preview');
                                         return;
                                     }
 
-                                    const htmlContent = html.serialize(editor, currentContent);
-                                    console.log('Preview HTML:', htmlContent);
-                                    toast.success('Preview content generated');
+                                    const htmlString = html.serialize(editor, currentContent);
+                                    setPreviewContent(htmlString);
+                                    toast.success('Preview refreshed');
                                 } catch (error) {
                                     console.error('Preview error:', error);
-                                    toast.error('Failed to generate preview');
+                                    toast.error('Failed to refresh preview');
                                 }
                             }}
                         >
-                            Debug Preview
-                        </Button> */}
-                        <LoadingButton loading={isSubmitting} disabled={isSubmitting || preview} type="submit" variant="default" className="uppercase font-semibold tracking-wider w-44">
-                            {isSubmitting ? 'Please wait' : 'Save'}
+                            Refresh Preview
                         </LoadingButton>
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <LoadingButton variant="outline" disabled={!preview} className="uppercase font-semibold tracking-wider w-36">
-                                    Preview
-                                </LoadingButton>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Are you sure this is saved?</AlertDialogTitle>
-                                    <AlertDialogDescription>On clicking continue you will be redirected drafts page. Make sure you the post is saved.</AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={handleOk}>Continue</AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
                     </div>
                 </form>
+            </div>
+
+            <Separator orientation="vertical" className="hidden lg:block" />
+
+            <div className="flex-1 lg:max-w-[700px]">
+                <div className="sticky top-0">
+                    <div className="p-4 border rounded-lg shadow-sm">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-lg w-fit text-nowrap font-semibold mb-4">Live Preview</h3>
+                            <div className="w-full flex justify-end gap-5">
+                                <LoadingButton
+                                    loading={isSubmitting}
+                                    disabled={isSubmitting}
+                                    type="submit"
+                                    variant="default"
+                                    className="uppercase font-semibold tracking-wider w-44"
+                                    onClick={handleSubmit(onSubmit)}
+                                >
+                                    {isSubmitting ? 'Please wait' : 'Save'}
+                                </LoadingButton>
+                            </div>
+                        </div>
+                        <div className="prose prose-sm max-w-none dark:prose-invert">
+                            <div
+                                className="preview-content text-center"
+                                style={{
+                                    color: headingColor,
+                                    fontSize: '1.5rem',
+                                    fontWeight: 'bold',
+                                    marginBottom: '1rem'
+                                }}
+                            >
+                                {watch('title')}
+                            </div>
+                            {uploadedFileUrl && (
+                                <div className="mb-4 flex flex-col items-center gap-0">
+                                    <img src={uploadedFileUrl} alt={watch('imgCaption')} className="w-full rounded-sm object-contain h-[400px] m-0" />
+                                    <p className="text-sm text-muted-foreground text-center">{watch('imgCaption')}</p>
+                                </div>
+                            )}
+                            <div
+                                className="preview-content [&_iframe]:w-full [&_iframe]:aspect-video p-4 rounded-md"
+                                dangerouslySetInnerHTML={{ __html: previewContent || '<p>Preview will appear here</p>' }}
+                                style={{ minHeight: '300px' }}
+                            />
+                            {tags.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mt-4">
+                                    {tags.map((tag) => (
+                                        <span key={tag.id} className="px-2 py-1 bg-primary/10 text-primary rounded-full text-sm">
+                                            {tag.text}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );

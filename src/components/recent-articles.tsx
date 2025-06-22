@@ -24,13 +24,13 @@ export default async function RecentArticles() {
                                 {formatDistanceToNow(new Date(article.createdAt), { addSuffix: true })}
                                 <span className="mx-2">•</span>
                                 <MessageSquareIcon className="h-3 w-3 mr-1" />
-                                {article.comments.length}
+                                {/* {article.comments.length} */}
                                 <span className="mx-2">•</span>
-                                {article.cat?.title || 'Uncategorized'}
+                                {/* {article.cat?.title || 'Uncategorized'} */}
                             </div>
                         </div>
                         <div className="flex items-center space-x-2">
-                            <Link href={`/admin/edit-news/${article.id}`}>
+                            <Link href={`/dashboard/edit-news/${article.id}`}>
                                 <Button variant="ghost" size="icon" className="h-8 w-8">
                                     <Edit2Icon className="h-4 w-4" />
                                 </Button>
@@ -47,7 +47,7 @@ export default async function RecentArticles() {
                 </div>
             ))}
             <div className="flex justify-end">
-                <Link href="/admin/manage-news">
+                <Link href="/dashboard/manage-news">
                     <Button variant="outline" size="sm">
                         View All Articles
                     </Button>

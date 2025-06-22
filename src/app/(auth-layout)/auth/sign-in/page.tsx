@@ -5,7 +5,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/utils/auth';
 import { redirect } from 'next/navigation';
 import Image from 'next/image';
-
 interface SignInProps {
     searchParams: Promise<{
         callbackUrl?: string;
@@ -19,8 +18,8 @@ const SigninPage = async ({ searchParams }: SignInProps) => {
     const callbackUrl = params?.callbackUrl ?? null;
     const error = params?.error ?? '';
 
-    if (session && session.user) {
-        redirect(callbackUrl ? callbackUrl : '/admin');
+    if (session && session.user && session.user.emailVerified) {
+        redirect(callbackUrl ? callbackUrl : '/dashboard');
     }
 
     return (

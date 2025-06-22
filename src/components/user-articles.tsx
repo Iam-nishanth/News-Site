@@ -73,7 +73,7 @@ export default function UserArticles({ userEmail }: { userEmail: string }) {
                     <div className="flex justify-between items-start mb-2">
                         <h3 className="font-medium">{article.title}</h3>
                         <div className="flex space-x-2">
-                            <Link href={`/admin/edit-news/${article.id}`}>
+                            <Link href={`/dashboard/edit-news/${article.id}`}>
                                 <Button variant="ghost" size="icon" className="h-8 w-8">
                                     <Edit2Icon className="h-4 w-4" />
                                 </Button>

@@ -19,7 +19,7 @@ const Navbar = ({ className }: { className?: string }) => {
                                 <NavbarMenu />
                                 <div className="w-36 sm:w-44 h-12 sm:h-14 relative">
                                     <Link href="/" className="no-underline w-full">
-                                        <Image src="/images/Stock-Liv.png" alt="logo" fill className="object-contain object-left" quality={100} />
+                                        <Image src="/images/hard-yards.png" alt="logo" fill className="object-cover object-left" quality={100} />
                                     </Link>
                                 </div>
                             </div>

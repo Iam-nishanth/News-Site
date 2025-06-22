@@ -62,10 +62,6 @@ export const modifyDraft: ModifyResponse = async (post) => {
         if (!post) return 'Insufficient Details';
         if (!session?.user) return 'User not Exist';
 
-        console.log('Updating draft with data:', {
-            ...post
-        });
-
         // Check if the draft exists first
         const existingDraft = await prisma.draftPost.findUnique({
             where: { id: post.id }
@@ -91,7 +87,6 @@ export const modifyDraft: ModifyResponse = async (post) => {
             }
         });
 
-        console.log('Response in modifyDraft', response);
         if (response) return 'Success';
     } catch (error) {
         console.error('Error in modifyDraft', error);
@@ -110,7 +105,6 @@ export const getDrafts = async () => {
 };
 
 export const getDraft = async (id: string) => {
-    console.log('id', id);
     if (!id) return;
 
     try {

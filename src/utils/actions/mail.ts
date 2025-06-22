@@ -27,7 +27,6 @@ export async function sendMail({ to, subject, body }: { to: string; subject: str
             subject,
             html: body
         });
-        console.log(sendResult);
         return sendResult.response;
     } catch (error) {
         console.log(error);

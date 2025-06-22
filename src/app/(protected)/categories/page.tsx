@@ -28,6 +28,7 @@ export default function CategoriesPage() {
             const data = await getCategories();
             const transformedData = data.map((cat) => ({
                 ...cat,
+                img: typeof cat.img === 'string' ? cat.img : null,
                 createdAt: cat.createdAt?.toISOString() || ''
             }));
             setCategories(transformedData);

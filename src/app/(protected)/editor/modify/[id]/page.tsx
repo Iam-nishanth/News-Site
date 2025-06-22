@@ -19,10 +19,9 @@ async function getData(id: string) {
 }
 
 const ModifyPostPage = async ({ params }: Props) => {
-    console.log('params', await params);
     const data = await getData(params.id);
 
-    return <MaxWidthWrapper className="relative py-5">{data && <ModifyPost post={data} />}</MaxWidthWrapper>;
+    return <MaxWidthWrapper className="relative py-5 px-[50px] max-w-none">{data && <ModifyPost post={data} />}</MaxWidthWrapper>;
 };
 
 export default ModifyPostPage;

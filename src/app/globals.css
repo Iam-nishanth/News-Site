@@ -157,3 +157,7 @@
     background-color: #1f6feb;
     border-left-color: #00ca56 !important;
 }
+.yoo-image-flex {
+    width: 100%;
+    max-width: 100%;
+}

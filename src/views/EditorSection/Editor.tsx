@@ -198,7 +198,6 @@ export default function Editor({ categories }: Props) {
                         // Generate initial preview content
                         try {
                             const htmlString = html.serialize(editor, initialContent);
-                            console.log('Initial HTML generated:', htmlString?.substring(0, 50));
                             if (htmlString) {
                                 setPreviewContent(htmlString);
                             }
@@ -227,7 +226,6 @@ export default function Editor({ categories }: Props) {
                                                     const htmlString = html.serialize(editor, newContent);
                                                     if (htmlString) {
                                                         setPreviewContent(htmlString);
-                                                        console.log('Content updated after paste');
                                                     }
                                                 } catch (serializeError) {
                                                     console.error('Paste serialization error:', serializeError);
@@ -312,8 +310,7 @@ export default function Editor({ categories }: Props) {
     // Only log when editor is ready
     useEffect(() => {
         if (editor && editorReady) {
-            console.log('HTML Content: ', html.serialize(editor, content));
-            console.log('Yoopta Content: ', content);
+            console.log('EDITOR SUCCESSFULLY MOUNTED');
         }
     }, [editor, editorReady, content]);
 
@@ -354,7 +351,6 @@ export default function Editor({ categories }: Props) {
             if ((!currentContent || Object.keys(currentContent).length === 0) && manuallyUpdated) {
                 // Use our React state content if the editor returns empty but we know it's been updated
                 currentContent = content;
-                console.log('Using state content instead of editor content');
             } else if (!manuallyUpdated && (!currentContent || Object.keys(currentContent).length === 0)) {
                 // If not manually updated and editor returns empty, use initialContent
                 currentContent = initialContent;
@@ -366,9 +362,6 @@ export default function Editor({ categories }: Props) {
                 toast.error('Please add some content to the editor');
                 return;
             }
-
-            console.log('Manually updated:', manuallyUpdated);
-            console.log('Content keys:', Object.keys(currentContent).length);
         } catch (error) {
             console.error('Error getting editor content:', error);
             // Use state as fallback if editor access fails
@@ -384,9 +377,6 @@ export default function Editor({ categories }: Props) {
             }
         }
 
-        console.log('Form data headingColor:', data.headingColor);
-        console.log('Component state headingColor:', headingColor);
-
         const formData = {
             ...data,
             title: data.title,
@@ -396,9 +386,6 @@ export default function Editor({ categories }: Props) {
             featuredImg: uploadedFileUrl,
             tags: data.tags.map((tag) => tag.text)
         };
-
-        console.log('Current Content:', currentContent);
-        console.log('Final Data:', formData);
 
         try {
             // Re-enable the draft creation
@@ -453,7 +440,6 @@ export default function Editor({ categories }: Props) {
     // Add a safety check for editor initialization
     useEffect(() => {
         if (editorReady && editor && !previewContent) {
-            console.log('Safety check - attempting to regenerate preview');
             try {
                 const currentContent = editor.getEditorValue();
                 if (currentContent && Object.keys(currentContent).length > 0) {
@@ -492,7 +478,6 @@ export default function Editor({ categories }: Props) {
                                         const newColor = e.target.value;
                                         setHeadingColor(newColor);
                                         setValue('headingColor', newColor);
-                                        console.log('Color updated:', newColor);
                                     }}
                                     className="w-12 h-12 p-1 rounded-md border border-input cursor-pointer"
                                 />
@@ -593,7 +578,6 @@ export default function Editor({ categories }: Props) {
                                                 try {
                                                     const htmlString = html.serialize(editor, newContent);
                                                     if (htmlString) {
-                                                        console.log('HTML preview generated:', htmlString.substring(0, 50) + '...');
                                                         setPreviewContent(htmlString);
                                                     }
                                                 } catch (serializeError) {

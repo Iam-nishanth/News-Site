@@ -68,7 +68,7 @@ export function CategoryDataTable({ data, onRefresh }: DataTableProps) {
             header: 'Image',
             cell: ({ row }) => {
                 const img = row.getValue('img') as string | null;
-                return img ? <Image src={img} alt="Category" width={50} height={50} className="rounded-md" /> : null;
+                return img ? <Image src={img} alt="Category" width={50} height={50} className="rounded-md" /> : '-NA-';
             }
         },
         {
@@ -134,8 +134,6 @@ export function CategoryDataTable({ data, onRefresh }: DataTableProps) {
             columnFilters
         }
     });
-
-    console.log('data', data);
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         const formData = new FormData();

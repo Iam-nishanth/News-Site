@@ -22,12 +22,12 @@ async function getHeroNews() {
 }
 
 export default async function Home() {
-    const heroNews = await getHeroNews();
+    // const heroNews = await getHeroNews();
 
     return (
         <main>
             <RevealY width="100%">
-                <HeroSection heroNews={heroNews} loading={false} />
+                <HeroSection heroNews={[]} loading={false} />
             </RevealY>
             <NewsSection />
             <RevealY width="100%">

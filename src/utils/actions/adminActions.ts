@@ -86,9 +86,6 @@ export const markHomeGridNews = async (newsIds: string[]) => {
         const response = await prisma.homeGrid.createMany({
             data: data
         });
-        // Handle the response as needed
-
-        console.log(response);
     } catch (error) {
         // Handle the error
         console.error(error);
@@ -109,9 +106,6 @@ export const deleteNews = async (id: string) => {
         const response = await prisma.news.delete({
             where: {
                 id
-            },
-            include: {
-                comments: true
             }
         });
 

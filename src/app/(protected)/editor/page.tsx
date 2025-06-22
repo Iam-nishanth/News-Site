@@ -5,10 +5,15 @@ import EditorSection from '@/views/EditorSection/Editor';
 
 export default async function EditorPage() {
     const categories = await getAvalilableCategories();
+    const mappedCategories =
+        categories?.map((cat) => ({
+            ...cat,
+            img: typeof cat.img === 'string' ? cat.img : undefined
+        })) || [];
 
     return (
         <MaxWidthWrapper className="relative py-5 px-[50px] max-w-none">
-            <EditorSection categories={categories ? categories : []} />
+            <EditorSection categories={mappedCategories} />
         </MaxWidthWrapper>
     );
 }

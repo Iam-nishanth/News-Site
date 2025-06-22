@@ -15,7 +15,7 @@ interface Article {
     slug: string;
     categorySlug: string | null;
     featuredImg: string | null;
-    cat: { title: string } | null;
+    cat?: { title: string } | null;
 }
 
 interface AddHeroArticleProps {
@@ -32,7 +32,15 @@ export default function AddHeroArticle({ onAdd, currentPositions }: AddHeroArtic
         const loadArticles = async () => {
             const data = await getAvailableArticles();
             if (data) {
-                setArticles(data);
+                const transformedData = data.map((article) => ({
+                    id: article.id,
+                    title: article.title,
+                    slug: article.slug,
+                    categorySlug: article.categorySlug,
+                    featuredImg: article.featuredImg,
+                    cat: null
+                }));
+                setArticles(transformedData);
             }
             setIsLoading(false);
         };

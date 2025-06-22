@@ -4,12 +4,15 @@ import { useDropzone } from 'react-dropzone';
 import { Input } from './input';
 import { Progress } from './progress';
 import { ScrollArea } from './scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './dialog';
 import { toast } from 'sonner';
 import { uploadFileToFirebase } from '@/lib/editor'; // Adjust the import path as necessary
 import { ImageIcon, UploadCloud, X } from 'lucide-react';
 import ReactCrop, { centerCrop, makeAspectCrop, type Crop, type PixelCrop, type PercentCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import { uploadFileToServerAction } from '@/utils/actions/cloudinary';
+import { handleUploadFile } from '@/utils/actions/cloudinary';
+import { Button } from './button';
+import { LoadingButton } from './loadingButton';
 
 interface FileUploadProgress {
     progress: number;
@@ -28,6 +31,7 @@ export default function ImageUpload({ onFileUpload }: { onFileUpload: (url: stri
     const [showCropDialog, setShowCropDialog] = useState(false);
     const [crop, setCrop] = useState<Crop>();
     const [croppedImageUrl, setCroppedImageUrl] = useState<string>('');
+    const [uploading, setUploading] = useState(false);
     const imgRef = useRef<HTMLImageElement | null>(null);
 
     const removeFile = (fileToRemove: File) => {
@@ -95,6 +99,8 @@ export default function ImageUpload({ onFileUpload }: { onFileUpload: (url: stri
     const handleCropComplete = async () => {
         if (!croppedImageUrl) return;
 
+        setUploading(true);
+
         try {
             // Convert base64 to blob
             const response = await fetch(croppedImageUrl);
@@ -132,7 +138,7 @@ export default function ImageUpload({ onFileUpload }: { onFileUpload: (url: stri
             formData.append('file', croppedFile);
             formData.append('type', 'image'); // Or determine type dynamically if needed
 
-            const { url } = await uploadFileToServerAction(formData);
+            const { url } = await handleUploadFile(formData);
 
             setUploadedFiles((prevUploadedFiles) => [...prevUploadedFiles, croppedFile]);
             setFilesToUpload([]);
@@ -140,10 +146,13 @@ export default function ImageUpload({ onFileUpload }: { onFileUpload: (url: stri
             setShowCropDialog(false);
             setSelectedFile(null);
             setCroppedImageUrl('');
-            toast.success('Uploaded Successfully');
+            setUploading(false);
         } catch (error) {
             console.error('Error uploading file:', error);
             toast.error('Error Uploading Image', { position: 'top-right' });
+            setUploading(false);
+        } finally {
+            setUploading(false);
         }
     };
 
@@ -180,11 +189,23 @@ export default function ImageUpload({ onFileUpload }: { onFileUpload: (url: stri
                 <Input {...getInputProps()} id="dropzone-file" accept="image/png, image/jpeg, image/gif, image/webp" type="file" className="hidden" />
             </div>
 
-            {showCropDialog && selectedFile && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-lg max-w-2xl w-full">
-                        <h2 className="text-xl font-semibold mb-4">Crop Image</h2>
-                        <div className="mb-4">
+            <Dialog
+                open={showCropDialog}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setShowCropDialog(false);
+                        if (selectedFile) {
+                            removeFile(selectedFile);
+                        }
+                    }
+                }}
+            >
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Crop Image</DialogTitle>
+                    </DialogHeader>
+                    <div className="mb-4">
+                        {selectedFile && (
                             <ReactCrop
                                 crop={crop}
                                 onChange={(_: unknown, percentCrop: PercentCrop) => setCrop(percentCrop)}
@@ -194,25 +215,27 @@ export default function ImageUpload({ onFileUpload }: { onFileUpload: (url: stri
                             >
                                 <img ref={imgRef} src={selectedFile.preview} alt="Crop me" onLoad={onImageLoad} className="max-h-[60vh]" />
                             </ReactCrop>
-                        </div>
-                        <div className="flex justify-end gap-2">
-                            <button
-                                onClick={() => {
-                                    setShowCropDialog(false);
-                                    removeFile(selectedFile);
-                                }}
-                                type="button"
-                                className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
-                            >
-                                Cancel
-                            </button>
-                            <button onClick={handleCropComplete} type="button" className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
-                                Crop & Upload
-                            </button>
-                        </div>
+                        )}
                     </div>
-                </div>
-            )}
+                    <DialogFooter>
+                        <Button
+                            onClick={() => {
+                                setShowCropDialog(false);
+                                if (selectedFile) {
+                                    removeFile(selectedFile);
+                                }
+                            }}
+                            type="button"
+                            className="px-4 py-2 bg-gray-200 hover:bg-slate-400"
+                        >
+                            Cancel
+                        </Button>
+                        <LoadingButton loading={uploading} onClick={handleCropComplete} type="button" className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" disabled={uploading}>
+                            Crop & Upload
+                        </LoadingButton>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {filesToUpload.length > 0 && (
                 <div>

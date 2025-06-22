@@ -8,75 +8,105 @@ datasource db {
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
-model Category {
-  id        String   @id @default(cuid()) @map("_id")
-  slug      String   @unique
-  title     String
-  img       Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model User {
+  id            String      @id @default(cuid()) @map("_id")
+  name          String
+  email         String      @unique
+  password      String?
+  role          ROLE        @default(USER)
+  phoneNo       String?
+  emailVerified Boolean?    @default(false)
+  image         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  news          News[]
+  drafts        DraftPost[]
+  comments      Comment[]
 }
 
-model Comment {
-  id String @id @default(cuid()) @map("_id")
+model VerificationToken {
+  identifier String   @id @map("_id")
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Category {
+  id        String      @id @default(cuid()) @map("_id")
+  slug      String      @unique
+  title     String
+  img       String?
+  news      News[]
+  drafts    DraftPost[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model News {
+  id           String       @id @default(cuid()) @map("_id")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  title        String
+  tags         String[]
+  categorySlug String
+  imgCaption   String?
+  headingColor String?
+  content      String
+  featuredImg  String?
+  slug         String       @unique
+  userEmail    String
+  cat          Category     @relation(fields: [categorySlug], references: [slug])
+  user         User         @relation(fields: [userEmail], references: [email])
+  comments     Comment[]
+  homeGrid     HomeGrid?    @relation(fields: [homeGridId], references: [id])
+  homeGridId   String?
+  HeroSection  HeroSection?
+}
+
+model HomeGrid {
+  id        String @id @default(cuid()) @map("_id")
+  newsItems News[]
 }
 
 model DraftPost {
   id           String   @id @default(cuid()) @map("_id")
-  categorySlug String
-  content      String
-  featuredImg  String
-  imgCaption   String
-  slug         String   @unique
-  tags         String[]
-  title        String
-  headingColor String?
-  userEmail    String
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  title        String
+  tags         String[]
+  categorySlug String
+  imgCaption   String?
+  headingColor String?
+  content      String
+  featuredImg  String?
+  slug         String   @unique
+  userEmail    String
+  cat          Category @relation(fields: [categorySlug], references: [slug])
+  user         User     @relation(fields: [userEmail], references: [email])
+}
+
+model Comment {
+  id        String   @id @default(cuid()) @map("_id")
+  createdAt DateTime @default(now())
+  desc      String
+  userEmail String
+  user      User     @relation(fields: [userEmail], references: [email])
+  postSlug  String
+  post      News     @relation(fields: [postSlug], references: [slug])
 }
 
 model HeroSection {
   id       String @id @default(cuid()) @map("_id")
   newsSlug String @unique
   position Int    @unique
+  news     News   @relation(fields: [newsSlug], references: [slug])
 }
 
-model HomeGrid {
-  id String @id @default(cuid()) @map("_id")
-}
-
-model News {
-  id           String   @id @default(cuid()) @map("_id")
-  categorySlug String
-  content      String
-  featuredImg  String
-  imgCaption   String
-  slug         String   @unique
-  tags         String[]
-  title        String
-  headingColor String?
-  userEmail    String
-  homeGridId   String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-model User {
-  id        String   @id @default(cuid()) @map("_id")
-  email     String   @unique
-  name      String
-  password  String
-  phoneNo   String
-  role      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model VerificationToken {
-  id      String   @id @default(cuid()) @map("_id")
-  token   String   @unique
-  expires DateTime @db.Date
-
-  @@unique([token, expires])
+enum ROLE {
+  SUPERADMIN
+  ADMIN
+  EDITOR
+  MAINTAINER
+  USER
 }

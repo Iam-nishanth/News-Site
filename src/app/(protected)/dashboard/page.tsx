@@ -30,14 +30,14 @@ export default async function AdminDashboard() {
                         </CardContent>
                     </Card>
 
-                    <Card>
+                    {/* <Card>
                         <CardHeader>
                             <CardTitle>Recent Comments</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <RecentComments />
                         </CardContent>
-                    </Card>
+                    </Card> */}
                 </div>
             </div>
         </AdminWrapper>

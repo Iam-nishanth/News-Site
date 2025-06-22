@@ -2,7 +2,7 @@
 
 import { CLOUDINARY, MediaObject } from '../cloudinary';
 
-export const uploadFileToServerAction = async (formData: FormData): Promise<MediaObject> => {
+export const handleUploadFile = async (formData: FormData): Promise<MediaObject> => {
     const file = formData.get('file') as File;
     const type = (formData.get('type') as string) || 'image';
 
@@ -11,7 +11,6 @@ export const uploadFileToServerAction = async (formData: FormData): Promise<Medi
     }
 
     if (!CLOUDINARY.CLOUD_NAME || !CLOUDINARY.PRESET || !CLOUDINARY.API) {
-        console.log(CLOUDINARY);
         throw new Error(
             'Cloudinary environment variables (NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME, NEXT_PUBLIC_CLOUDINARY_CLOUD_PRESET, NEXT_PUBLIC_CLOUDINARY_API) are not properly configured. Please check your .env file.'
         );

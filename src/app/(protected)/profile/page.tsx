@@ -26,7 +26,7 @@ export default async function ProfilePage() {
                     </CardHeader>
                     <CardContent className="flex flex-col items-center">
                         <Avatar className="h-20 w-20 mb-4">
-                            <AvatarImage src={user.image || '/placeholder.svg'} alt={user.name} />
+                            <AvatarImage src={user?.image || '/placeholder.svg'} alt={user.name} />
                             <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <h2 className="text-xl font-bold">{user.name}</h2>

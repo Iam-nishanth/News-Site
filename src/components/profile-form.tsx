@@ -60,7 +60,6 @@ export default function ProfileForm({ user }: { user: User }) {
 
         // In a real application, you would update the user profile here
         setTimeout(() => {
-            console.log(data);
             setIsLoading(false);
             toast.success('Profile updated successfully');
         }, 1000);

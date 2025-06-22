@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger, SheetClose, SheetFooter } from '@/components/ui/sheet';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
@@ -13,6 +13,8 @@ import { getInitials } from '@/lib/utils';
 import { ModeToggle } from '../../ui/theme-switch';
 import { User } from '@prisma/client';
 import { LogoutButton } from '../../common/AuthButtons';
+import { redirect } from 'next/navigation';
+import { toast } from 'sonner';
 
 const DashBoardHeader = ({ user }: { user?: User }) => {
     const [status, setStatus] = useState(false);
@@ -30,7 +32,7 @@ const DashBoardHeader = ({ user }: { user?: User }) => {
         ? [
               {
                   name: 'Dashboard',
-                  link: '/admin',
+                  link: '/dashboard',
                   Icon: <LayoutGrid className="w-5 h-5" />
               },
               {
@@ -114,7 +116,7 @@ const DashBoardHeader = ({ user }: { user?: User }) => {
                     <SheetContent side="left" className="p-2 w-80 z-[9999]">
                         <SheetHeader className="py-3 flex justify-center items-center border-b border-muted w-full">
                             <div className="w-48 h-16 relative flex justify-center">
-                                <Image src="/images/Stock-Liv.png" alt="Logo" fill className="w-full h-full object-contain object-center" />
+                                <Image src="/images/hard-yards.png" alt="Logo" fill className="w-full h-full object-cover object-center" />
                             </div>
                         </SheetHeader>
                         <div className="flex flex-col gap-6 p-8">

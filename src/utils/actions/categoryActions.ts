@@ -44,7 +44,7 @@ export async function updateCategory(formData: FormData) {
         const id = formData.get('id') as string;
         const title = formData.get('title') as string;
         const slug = formData.get('slug') as string;
-        const imageFile = formData.get('image') as File;
+        const imageFile = formData.get('image') as string;
 
         if (!id || !title || !slug) {
             throw new Error('ID, title and slug are required');
@@ -64,17 +64,12 @@ export async function updateCategory(formData: FormData) {
             return { success: false, error: 'A category with this slug already exists' };
         }
 
-        let imageUrl = null;
-        if (imageFile) {
-            imageUrl = await uploadFileToFirebase(imageFile);
-        }
-
         await prisma.category.update({
             where: { id },
             data: {
                 title,
                 slug,
-                ...(imageUrl && { img: imageUrl })
+                img: imageFile
             }
         });
 

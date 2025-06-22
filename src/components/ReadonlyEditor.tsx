@@ -16,7 +16,7 @@ import ActionMenuList, { DefaultActionMenuRender } from '@yoopta/action-menu-lis
 import Toolbar, { DefaultToolbarRender } from '@yoopta/toolbar';
 import LinkTool, { DefaultLinkToolRender } from '@yoopta/link-tool';
 import { useEffect, useMemo, useRef } from 'react';
-import { uploadFileToServerAction } from '@/utils/actions/cloudinary';
+import { handleUploadFile } from '@/utils/actions/cloudinary';
 
 const plugins = [
     Paragraph,
@@ -38,7 +38,7 @@ const plugins = [
                 formData.append('file', file);
                 formData.append('type', 'image');
 
-                const data = await uploadFileToServerAction(formData);
+                const data = await handleUploadFile(formData);
 
                 return {
                     src: data.secure_url,
@@ -81,7 +81,7 @@ export default function WithReadOnly({ content }: { content: any }) {
                 style={{
                     width: '100% !important',
                     margin: '0',
-                    padding: '0'
+                    padding: '0 0 20px 0'
                 }}
                 editor={editor}
                 plugins={plugins}

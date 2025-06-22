@@ -126,9 +126,9 @@ export function NavbarMenu() {
                             </ul>
                         </NavigationMenuContent>
                     </NavigationMenuItem> */}
-                    {(session?.user?.role === 'ADMIN' || session?.user?.role === 'EDITOR' || session?.user?.role === 'SUPERADMIN') && (
+                    {session?.user?.emailVerified && (session?.user?.role === 'ADMIN' || session?.user?.role === 'EDITOR' || session?.user?.role === 'SUPERADMIN') && (
                         <NavigationMenuItem>
-                            <NavigationMenuLink href="/admin" className={cn(navigationMenuTriggerStyle(), 'font-Barlow uppercase font-medium')}>
+                            <NavigationMenuLink href="/dashboard" className={cn(navigationMenuTriggerStyle(), 'font-Barlow uppercase font-medium')}>
                                 Dashboard
                             </NavigationMenuLink>
                         </NavigationMenuItem>

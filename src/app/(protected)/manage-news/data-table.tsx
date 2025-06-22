@@ -19,12 +19,13 @@ import Link from 'next/link';
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
     data: TData[];
+    filterBy?: string;
 }
 
-export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, filterBy }: DataTableProps<TData, TValue>) {
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [sorting, setSorting] = useState<SortingState>([]);
-    const [selectedFilterField, setSelectedFilterField] = useState<string>('email');
+    const [selectedFilterField, setSelectedFilterField] = useState<string>(filterBy ?? 'email');
 
     const { open, setOpen } = useDialogContext();
     const [rowSelection, setRowSelection] = useState({});
@@ -63,7 +64,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
                         </SelectContent>
                     </Select>
                     <Input
-                        placeholder={`Filter ${selectedFilterField}`}
+                        placeholder={`Filter with ${selectedFilterField}`}
                         value={(table.getColumn(selectedFilterField)?.getFilterValue() as string) ?? ''}
                         onChange={(event) => table.getColumn(selectedFilterField)?.setFilterValue(event.target.value)}
                         className=" max-w-[250px]"
