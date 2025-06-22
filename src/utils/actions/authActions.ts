@@ -91,7 +91,7 @@ export const activateUser: ActivateUserHandle = async (jwtUserId) => {
 //             id: user.id
 //         },
 //         data: {
-//             emailVerified: new Date()
+//             emailVerified: true
 //         }
 //     })
 //     return "success"

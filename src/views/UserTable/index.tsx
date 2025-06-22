@@ -22,7 +22,7 @@ export type ROW = {
     email: string;
     createdAt: Date;
     role: string;
-    emailVerified: Date | null;
+    emailVerified: boolean | null;
 };
 
 const UserTable = ({ data }: { data: User[] }) => {
